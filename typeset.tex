@@ -1,0 +1,40 @@
+\documentclass[10pt,adobefonts,fancyhdr,UTF8]{ctexbook}
+
+\makeatletter
+\input{format.cls}
+\makeatother
+
+\begin{document}
+\sloppy
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RE]{\normalfont\small\rmfamily\nouppercase{\leftmark}}
+\fancyhead[LO]{\normalfont\small\rmfamily\nouppercase{\rightmark}}
+\fancyhead[LE,RO]{\thepage}
+%\fancyfoot[LE,LO]{\small\normalfont\youyuan\BookTitle}
+
+\makeatletter
+\@openrightfalse
+\makeatother
+
+\frontmatter % 开始前言目录，页码用罗马数字
+
+\include{title}
+
+\tableofcontents
+
+\mainmatter % 开始正文，页码用阿拉伯数字
+
+\graphicspath{{diagrams/}}
+
+\include{chapEnvironment}
+\include{chapStyle}
+\include{chapRules}
+\include{chapFinetune}
+\include{chapTools}
+
+\appendix % 开始附录，章用字母编号
+
+
+\end{document}
