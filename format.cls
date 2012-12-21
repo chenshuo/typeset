@@ -42,9 +42,9 @@ parsep=0pt plus 2pt minus 2pt]}
 %\setlength{\parskip}{1ex plus .5ex minus .5ex}
 
 \@addtoreset{footnote}{page}
-%\def\@fncnsymbol#1{\ifcase#1\or ¢Ù\or ¢Ú\or ¢Û\or
-%   ¢Ü\or ¢Ý\or ¢Þ\or ¢ß\or ¢à
-%   \or ¢á \else\@ctrerr\fi}
+%\def\@fncnsymbol#1{\ifcase#1\or â‘ \or â‘¡\or â‘¢\or
+%   â‘£\or â‘¤\or â‘¥\or â‘¦\or â‘§
+%   \or â‘¨ \else\@ctrerr\fi}
 %\def\fncnsymbol#1{\expandafter\@fncnsymbol\csname c@#1\endcsname}
 %\renewcommand{\thefootnote}{\fncnsymbol{footnote}}
 %\renewcommand{\thefootnote}{\textbf{\color{blue}{\arabic{footnote}}}}
