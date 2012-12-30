@@ -1,13 +1,96 @@
-\chapter{板式}
-\section{纸张大小}
-\section{版心大小}
-\section{页眉与页脚}
+\chapter{版式}
+本文使用的长度单位：
+1英寸 = 25.4mm = 72.27pt = 72bp。
+注意 \TeX 定义的pt\nolinebreak
+\footnote{pt是point的缩写，中文叫“磅”。} 和PostScript（亦即Adobe系列软件）的pt的长度不一样，
+本书以 \TeX 的pt为准，PostScript的基本长度单位写为bp（big point）。
+
+\section{纸张大小} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+书籍的纸张大小通常异于常用的打印纸大小（A4或B5），
+因此用 \LaTeX 排版书籍的第一步是设置好纸张大小。
+一般常见的IT图书的开本（成品书尺寸，可以用尺子量出来）是 185mm $\times$ 230mm，
+即“国际18开”；另外一种常见开本是185mm $\times$ 260mm，即“16开”。
+本文以“国际18开”为例。
+我们通常可以用 \fn{geometry} 宏包来设置纸张和版心尺寸，
+例子见 \ref{sec:textbody} 节。
+
+\section{版心大小} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\label{sec:textbody}
+
+“版心”即正文区，不包含页眉和页脚
+\footnote{这是本文的定义，也有将版心定义为包含页眉和页脚的。}。
+版心的大小可以这样计算：
+通常正文字号是10pt
+\footnote{比五号（10.5pt）字略小，比小五号字（9pt）大。}，
+一行按39个汉字计算，
+%\footnote{。一般不宜超过40个。}
+那么行宽是 390pt。
+行宽是正文字号的整数倍，这样中文间距不会无故拉宽。
+行宽不宜过大，否则阅读的时候容易读串行；
+也不宜过小，否则一行排不下80列代码。一般而言，
+36 \textasciitilde\ 42字比较适宜，本文定为39字，数数上一行:-)。
+《C++多线程服务端编程：使用muduo C++网络库》一行是37个汉字，
+因为这本书厚达600页，如果版心太宽容易影响阅读订口的文字。
+
+对于10pt的正文字体，\LaTeX 默认的行距
+\footnote{行距指的是英文基线（baseline）之间的距离，即中文汉字底部之间的距离，
+不是两行之间的空白。} 是12pt，这对于英文是合适的
+\footnote{因为英文文本多是小写字母，字高远小于10pt。}，
+但是对于中文则显得太密了。因此 \CTeX 宏包将 \fn{\bs baselinestretch} 定义为 1.3，
+这样行距是 12pt$\times$ 1.3 = 15.6pt，阅读起来就比较顺眼了。
+如果一页排34行字，那么版心的高度大约是
+\footnote{这里说“大约”，因为第一行上方似乎不必留出多余的空白。} 15.6pt$\times$34=530.4pt，
+本文取 530pt
+\footnote{对于技术类图书，通常一个自然段不会太长，
+一页之内几乎总是会遇到分段（整段代码、图表、章节标题）的情况，
+因此版心高度不必严格是行距的整数倍。} 。
+
+综上，对于39字 $\times$ 34行的版心，其尺寸是 390pt $\times$ 530pt，约合 137mm $\times$ 186mm。见下图示意。
+
+%\vspace{1ex}
+\centerline{\includegraphics{paper.eps}}
+
+知道了纸张和版心尺寸，剩下的就交给 \fn{geometry} 宏包。
+例如 \myurl{examples/paper.tex}。
+\begin{Codex}[label=examples/paper.tex]
+\documentclass[10pt,fancyhdr,UTF8]{ctexbook}
+\usepackage[centering,paperwidth=180mm,paperheight=230mm,%
+            body={390pt,530pt},showframe]{geometry}
+\end{Codex}
+
+注意这里把纸张宽度设为 180mm，这是考虑到装订的位置，
+这样在电脑上预览的时候左右空白更贴近实际印刷的效果。
+我们也不必关心版心在纸张中的上下左右位置，居中即可，
+在印刷的时候有专人负责拼版。当然在正式排版的时候要去掉 \fn{showframe} 选项。
+
+另外，打印纸一般不会刚好和书籍开本一样大，
+要想在书印出来之前感受版面效果，
+可以打印在A4纸上，但需要将开本框出来，可用 \fn{crop} 宏包。
+例如 \myurl{examples/paper-crop.tex}。
+\begin{Code}
+$ diff -u paper.tex paper-crop.tex
+--- paper.tex           2012-12-29 14:03:02.000 +0800
++++ paper-crop.tex      2012-12-29 14:03:02.000 +0800
+ \documentclass[10pt,fancyhdr,UTF8]{ctexbook}
+ \usepackage[centering,paperwidth=180mm,paperheight=230mm,%
+             body={390pt,530pt},showframe]{geometry}
++\usepackage[a4,center,frame,color=blue]{crop}
+\end{Code}
+
+\section{页眉与页脚} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+页眉的外侧是页码，内侧是章节名称。
+
+页脚通常可以放书名，这样即便复印其中一面也容易知道出自何处。
 \subsection{各章首页}
 \section{中文字体}
 \section{英文字体}
 \subsection{罗马字体}
+不要使用 Computer Modern Roman。
 \subsection{无衬线字体}
 \subsection{等宽字体}
+不要使用 Courier New。
 \subsection{特殊字体}
 
 \section{整段代码}
