@@ -1,0 +1,24 @@
+\documentclass[10pt,adobefonts,fancyhdr,UTF8]{ctexbook}
+\usepackage[centering,paperwidth=70mm,paperheight=100mm,body={170pt,210pt}]{geometry}
+\CTEXsetup[number={\thechapter}]{chapter}
+%\CTEXsetup[format+={\raggedleft}]{chapter}
+\CTEXsetup[beforeskip={10pt}]{chapter}
+\CTEXsetup[format+={\raggedright}]{section}
+
+\begin{document}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RE]{\normalfont\small\rmfamily\nouppercase{\leftmark}}
+\fancyhead[LO]{\normalfont\small\rmfamily\nouppercase{\rightmark}}
+\fancyhead[LE,RO]{\thepage}
+\fancyfoot[LE,LO]{\small Book Title}
+\mainmatter
+\chapter{导论}
+本章带领读者……
+\newpage
+\section{预备知识}
+读者需要具备……
+\newpage
+此外，……
+\end{document}
+

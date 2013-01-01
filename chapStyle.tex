@@ -1,10 +1,9 @@
 \chapter{版式}
 
 本文使用的长度单位：
-1英寸 = 25.4mm = 72.27pt = 72bp。
-注意 \TeX 定义的pt\nolinebreak
-\footnote{pt是point的缩写，中文叫“磅”。} 和PostScript（亦即Adobe系列软件）的pt的长度不一样，
-本书以 \TeX 的pt为准，PostScript的基本长度单位写为bp（big point）。
+1英寸 = 25.4mm = 72.27pt \footnote{pt是point的缩写，中文叫“磅”。} = 72bp。
+注意 \TeX 定义的pt和PostScript（亦即Adobe系列软件）定义的pt的长度不一样，
+本书以 \TeX 定义的pt为准，Post\-Script的基本长度单位写为bp（big point）。
 
 \section{纸张大小} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -38,7 +37,7 @@
 \footnote{行距指的是英文基线（baseline）之间的距离，即中文汉字底部之间的距离，
 不是两行之间的空白。} 是12pt，这对于英文是合适的
 \footnote{因为英文文本多是小写字母，字高远小于10pt。}，
-但是对于中文则显得太密了。因此 \CTeX 宏包将 \fn{\bs baselinestretch} 定义为 1.3，
+但是对于中文则显得太密了。因此 \CTeX 宏包将 \mn{baselinestretch} 定义为 1.3，
 这样行距是\linebreak 1.3$\times$12pt = 15.6pt，阅读起来就比较顺眼了。
 如果一页排34行字，那么版心的高度大约是 \nolinebreak
 \footnote{这里说“大约”，因为第一行上方似乎不必留出多余的空白。} 34$\times$15.6pt=530.4pt，
@@ -53,6 +52,7 @@
 \centerline{\includegraphics{paper.eps}}
 
 知道了纸张和版心尺寸，剩下的就交给 \fn{geometry} 宏包。
+它同时会设置生成的PDF的纸张尺寸。
 例如 \myurl{examples/paper.tex}。
 \begin{Codex}[label=examples/paper.tex]
 \documentclass[10pt,fancyhdr,UTF8]{ctexbook}
@@ -81,22 +81,70 @@ $ diff -u paper.tex paper-crop.tex
 
 \section{页眉与页脚} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-页眉的外侧是页码，内侧是章节名称。
+书籍排版不是以一页（一面）为单位，而是以翻开之后的两面（左右页）为单位。
+\LaTeX 默认会设法让左右页的内容一样多，即左右页的最后一行位于同一高度。
+有时候这会造成难看的版面，特别是有可能留下过多段间空白。
+一般可以用 \mn{raggedbottom} 命令来取消这一设定。
 
-页脚通常可以放书名，这样即便复印其中一面也容易知道出自何处。
-\subsection{各章首页}
+页眉的外侧（切口）是页码，内侧（订口）是章节名称，通常是左页（偶数页）放章名，
+右页（奇数页）放节名
+\footnote{\mybooktitle p.393 的内侧页眉为空，因为该章第1节出现在 p.394。}。
+页脚通常可以放书名，这样即便复印其中一面也容易知道出自何处（本文把作者姓名也放到页脚，）。
+典型的安排如下图所示。
+
+\vspace{1ex}
+\centerline{\fbox{\includegraphics[page=2,scale=0.9]{header.pdf}}%
+\quad\fbox{\includegraphics[page=3,scale=0.9]{header.pdf}}}
+
+\vspace{1ex}
+我们一般用 \fn{fancyhdr} 宏包来设置页眉和页脚，常用的设置如下。
+其中 \fn{RE} 表示偶数页\linebreak（Even）右侧（Right），
+\fn{LO} 表示偶数页（Odd）右侧（Left），
+\fn{LE}、\fn{RO} 的意思想必读者能举一反三猜出来。
+\begin{Code}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[RE]{\normalfont\small\rmfamily\nouppercase{\leftmark}}
+\fancyhead[LO]{\normalfont\small\rmfamily\nouppercase{\rightmark}}
+\fancyhead[LE,RO]{\thepage}
+\fancyfoot[LE,LO]{\small Book Title}
+\end{Code}
+
+通常每章的第一页没有页眉，页码放到页脚中央，如下图所示。
+
+\vspace{1ex}
+\centerline{\fbox{\includegraphics[page=1,scale=0.9]{header.pdf}}}
+
 \section{中文字体} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+首先，适合屏幕阅读的字体不一定适合印刷书籍。
+原因可能有两点，一是书籍的印刷分辨率远高于屏幕；
+二是屏幕会主动发光，而书籍是被动反光。
+其次，中文字体用三四种（宋、黑、楷）就足够了，不要太花哨。
 印刷用的正文字体可用方正书宋或华康简宋，
-看出版社的授权情况。
+视出版社的字体授权情况而定。
+屏幕阅读可用Windows中文字体或Adobe中文字体。
+注意某些Adobe中文字体的标点符号位置不正确，
+例如Adobe楷体的全角冒号和分号上下居中，而不是位于左下角（
+\setCJKfamilyfont{adobekai}{Adobe Kaiti Std}
+{\CJKfamily{adobekai}子曰：“食不厌精；脍不厌细。”}），
+使用时需要注意。
+另外，方正书宋和华康简宋缺少某些繁体字（例如“碁”），可以临时改换为Adobe宋体。
+例如
+\begin{Code}
+\setCJKfamilyfont{adobesong}{Adobe Song Std}
+《C++编程规范（繁体版）》由{\CJKfamily{adobesong} 碁峰}出版社出版。
+\end{Code}
 
-屏幕阅读可用Windows的宋体或Adobe中文字体，
-注意某些Adobe中文字体的标点符号位置不正确。
 
+\subsection{不要使用中文斜体}
+中文斜体是非常难看的，千万不要用。
+为了突出中文术语，可以用\textbf{黑体}，例如\textbf{与非门}。
+传统科技书籍也常用{\kaishu 楷体}表示术语和强调，不过黑体目前似乎更流行一些。
 
 \section{英文字体} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-The \LaTeX\ Font Catalogue. 
-\myurl{http://www.tug.dk/FontCatalogue/}
+英文字体可选择的范围就大多了，可参考
+The \LaTeX\ Font Catalogue （\myurl{http://www.tug.dk/FontCatalogue/}）。
 
 \subsection{罗马字体}
 不要使用 {\fontfamily{lmr}\selectfont Computer Modern Roman}，
@@ -114,7 +162,7 @@ The \LaTeX\ Font Catalogue.
 \subsection{无衬线字体}
 
 一般用于章节标题和编程语言关键字，例如“\kw{this} 指针”、
-“\kw{mutable} 成员变量”。由于它出现的机会小，用什么字体其实无所谓，
+“\kw{mutable} 成员变量”。由于它出现的机会少，用什么字体其实无所谓，
 默认的 \kw{Computer Modern Sans Serif} 就行。
 也可以换为 {\fontspec{Nimbus Sans L} Helvetica} 
 \footnote{实际的字体名是 \fn{Nimbus Sans L} 或 \fn{TeX Gyre Heros} 或 \fn{Arial} 等。}。
@@ -136,25 +184,65 @@ The \LaTeX\ Font Catalogue.
 并搭配合适的 TECkit 映射文件
 \footnote{见本文源码目录中的 \fn{tex-text-tt.map}，需要用 \fn{teckit_compile} 工具编译为 \fn{{}.tec} 文件。}。
 
-
-如果要排版大量Java代码，可以考虑用窄的无衬线等宽字体，如XXX。
+如果要排版大量Java代码（一行可长达100列），可以考虑用窄的无衬线等宽字体，
+如 TheSansMono Condensed，但似乎没有免费版本。
+另外，一些英文书籍也用 Lucida Sans Typewriter 来排版代码，可以从Sun JDK中找到。
 
 \subsection{特殊字体}
 URL可以用窄字体，以节省空间。
 例如 {\fontspec{Latin Modern Mono Light Cond} Latin Modern Mono Light Cond} 或者 \myurl{PT Sans Narrow}。
-特殊术语可以用稍微夸张一点的字体凸显，例如“{\fontspec{URW Gothic L} Extract Method} 重构手法”和
+特殊术语可以用稍微夸张一点的字体凸显，例如“{\fontspec{URW Gothic L} Extract Method} 重构”和
 “{\fontspec{URW Gothic L} Observer} 模式”。
 
+\section{行距与段距}
+中文区分自然段的方法有三种，传统的方案是段首空两格（indent），
+现代的方案是两段之间增加空白（\mn{parskip}），
+第三种方案是同时使用前两者。本文采用传统方案，
+\mybooktitle 一书采用第三种方案。
+设置\mn{parskip} 的时候要小心，它会影响所有段落之前的空白，
+包括章节标题、图表、图表编号等等。
+
+
 \section{整段代码}
-\fn{fancyvrb} 宏包。
+用等宽字体排版代码一般可用 \fn{fancyvrb} 宏包，然后定义自己的\fn{Code} 环境，
+字号9pt，行距0.9，左边留出3mm。
+\begin{Code}
+\DefineVerbatimEnvironment{Code}{Verbatim}%
+  {fontsize=\small,baselinestretch=0.9,xleftmargin=3mm}
+\end{Code}
 
-用 Computer Modern Typewriter 字体，版心宽度390pt时，一行可排80列。
+用 {\fontspec{Latin Modern Mono} Computer Modern Typewriter} 字体，版心宽度390pt时，一行可排80列。
 \begin{Code}
 12345678901234567890123456789012345678901234567890123456789012345678901234567890
          1         2         3         4         5         6         7         8
 \end{Code}
 
-\begin{Code}
-12345678901234567890123456789012345678901234567890123456789012345678901234567890
+用 {\fontspec{Inconsolata} Inconsolata} 字体，版心宽度为390pt时，一行可排84列。
+版心宽度为370pt时可排80列。
+%\setmonofont[AutoFakeBold=1.6,AutoFakeSlant=0.17,Mapping=tex-text-tt]{Inconsolata}
+\makeatletter
+\@namedef{FV@fontfamily@inconsolata}{%
+  \def\FV@FontScanPrep{}%
+  \def\FV@FontFamily{\fontspec{Inconsolata}}}
+\makeatother
+\begin{Code}[fontfamily=inconsolata]
+123456789012345678901234567890123456789012345678901234567890123456789012345678901234
          1         2         3         4         5         6         7         8
 \end{Code}
+
+另外还可以定义\fn{Codex} 环境，用于排版带标题（文件名）的代码。
+
+\begin{Code}
+\DefineVerbatimEnvironment{Codex}{Verbatim}%
+  {fontsize=\small,baselinestretch=0.9,xleftmargin=3mm,%
+  frame=lines,labelposition=all,framesep=5pt}
+\end{Code}
+
+我对 \fn{fancyvrb} 宏包有一些改动，见 \fn{verbatim.cls}。
+最终效果如下：
+\begin{Codex}[label=hello.c,numbers=left]
+int main()
+{
+  printf("Hello, world.\n");
+}
+\end{Codex}

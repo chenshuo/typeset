@@ -16,14 +16,17 @@ body={390pt,530pt},marginparsep=10pt,marginpar=50pt]{geometry}
 
 %\setmainfont{Times New Roman}
 \setmainfont{Linux Libertine O}
+%\setmainfont{TeX Gyre Pagella}
 \newfontfamily\urlfont{PT Sans Narrow}
 %\setmonofont[AutoFakeBold=1.6,AutoFakeSlant=0.17,Mapping=tex-text-tt]{Inconsolata}
+\setCJKfamilyfont{zhyou}{YouYuan}
 
 \newcommand{\fn}[1]{\texttt{#1}}
 \newcommand{\sfn}[1]{\texttt{\small #1}}
 \newcommand{\kw}[1]{\textsf{#1}}
 \newcommand{\myurl}[1]{{\urlfont #1}}
 \newcommand{\mpar}[1]{\marginpar[\hfill\kaishu #1]{\kaishu #1}}
+\newcommand{\mn}[1]{\texttt{\bs #1}}
 \renewcommand{\today}{\the\year-\the\month-\the\day}
 \newcommand\bs{\textbackslash}
 
@@ -46,6 +49,7 @@ parsep=0pt plus 2pt minus 2pt]}
 \raggedbottom
 %\setlength{\parskip}{1ex plus .5ex minus .5ex}
 
+\input{verbatim.cls}
 \DefineVerbatimEnvironment%
   {Codex}{Verbatim}
   {fontsize=\small,baselinestretch=0.9,xleftmargin=3mm,%
