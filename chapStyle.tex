@@ -13,7 +13,7 @@
 即“国际18开”；另外一种常见开本是185mm $\times$ 260mm，即“16开”。
 本文以“国际18开”为例。
 我们通常可以用 \fn{geometry} 宏包来设置纸张和版心尺寸，
-例子见 \ref{sec:textbody} 节。
+例子见 \S \ref{sec:textbody}。
 
 \section{版心大小} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \label{sec:textbody}
@@ -136,15 +136,16 @@ $ diff -u paper.tex paper-crop.tex
 《C++编程规范（繁体版）》由{\CJKfamily{adobesong} 碁峰}出版社出版。
 \end{Code}
 
-
 \subsection{不要使用中文斜体}
+\label{subsec:noChineseItalic}
 中文斜体是非常难看的，千万不要用。
 为了突出中文术语，可以用\textbf{黑体}，例如\textbf{与非门}。
 传统科技书籍也常用{\kaishu 楷体}表示术语和强调，不过黑体目前似乎更流行一些。
 
+
 \section{英文字体} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 英文字体可选择的范围就大多了，可参考
-The \LaTeX\ Font Catalogue （\myurl{http://www.tug.dk/FontCatalogue/}）。
+The \LaTeX\ Font Catalogue \footnote{\myurl{http://www.tug.dk/FontCatalogue/}}。
 
 \subsection{罗马字体}
 不要使用 {\fontfamily{lmr}\selectfont Computer Modern Roman}，
@@ -212,10 +213,12 @@ URL可以用窄字体，以节省空间。
 \end{Code}
 
 用 {\fontspec{Latin Modern Mono} Computer Modern Typewriter} 字体，版心宽度390pt时，一行可排80列。
+\begin{Verbatim}[fontsize=\small,baselinestretch=0.9,xleftmargin=3mm]
 \begin{Code}
 12345678901234567890123456789012345678901234567890123456789012345678901234567890
          1         2         3         4         5         6         7         8
 \end{Code}
+\end{Verbatim}
 
 用 {\fontspec{Inconsolata} Inconsolata} 字体，版心宽度为390pt时，一行可排84列。
 版心宽度为370pt时可排80列。
