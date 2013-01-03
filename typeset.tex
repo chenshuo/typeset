@@ -1,4 +1,4 @@
-\documentclass[10pt,adobefonts,fancyhdr,UTF8]{ctexbook}
+\documentclass[10pt,adobefonts,fancyhdr,hyperref,UTF8]{ctexbook}
 
 \makeatletter
 \input{format.cls}
@@ -6,7 +6,7 @@
 
 \begin{document}
 \sloppy
-\newcommand\mybooktitle{《C++多线程服务端编程：使用muduo C++网络库》}
+\newcommand\mybooktitle{《Linux多线程服务端编程：使用muduo C++网络库》}
 \newcommand\BookTitle{自顶向下用 \LaTeX 排版编程技术书籍}
 \pagestyle{fancy}
 \fancyhf{}
@@ -30,12 +30,12 @@
 \graphicspath{{diagrams/}}
 
 \include{chapEnvironment}
+\include{chapLayout}
 \include{chapStyle}
-\include{chapRules}
 \include{chapFinetune}
 \include{chapTools}
 
 \appendix % 开始附录，章用字母编号
-
+\printindex
 
 \end{document}

@@ -3,10 +3,19 @@ body={390pt,530pt},marginparsep=10pt,marginpar=50pt]{geometry}
 \usepackage{color}
 \usepackage{enumitem}
 \usepackage{fancyvrb}
-\usepackage[bottom,perpage]{footmisc}
+\usepackage[bottom,perpage,symbol*]{footmisc}
 \usepackage{graphicx}
+\usepackage[hidelinks]{hyperref}
+\usepackage{makeidx}
 \usepackage[toc]{multitoc}
+\usepackage{pifont}
 \usepackage{underscore}
+
+\DefineFNsymbols*{chinese}{{\ding{172}}{\ding{173}}{\ding{174}}{\ding{175}}%
+{\ding{176}}{\ding{177}}{\ding{178}}{\ding{179}}{\ding{180}}{\ding{181}}}
+\setfnsymbol{chinese}
+
+\hypersetup{bookmarksnumbered=true,bookmarksdepth=2}
 
 \CTEXsetup[number={\thechapter}]{chapter}
 \CTEXsetup[format+={\raggedleft}]{chapter}
@@ -59,9 +68,4 @@ parsep=0pt plus 2pt minus 2pt]}
   {Code}{Verbatim}
   {fontsize=\small,baselinestretch=0.9,xleftmargin=3mm}
 
-%\def\@fncnsymbol#1{\ifcase#1\or ①\or ②\or ③\or
-%   ④\or ⑤\or ⑥\or ⑦\or ⑧
-%   \or ⑨ \else\@ctrerr\fi}
-%\def\fncnsymbol#1{\expandafter\@fncnsymbol\csname c@#1\endcsname}
-%\renewcommand{\thefootnote}{\fncnsymbol{footnote}}
-%\renewcommand{\thefootnote}{\textbf{\color{blue}{\arabic{footnote}}}}
+\makeindex
