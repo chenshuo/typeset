@@ -16,6 +16,15 @@ C/C++代码的标识符中经常出现下划线“_”，例如 \fn{boost::share
 那么下划线之后不应该出现连字号“-”，
 因此应写为 \verb|random_\linebreak[0]shuffle|。
 
+\section{斜体}
+按照排版规范，数学变量名应该用斜体，常量和单位应该用正体。
+例如：$n$-body 问题、$E = m \mathrm{c}^2 $、5\textmu s。
+快速排序 $n$ 个元素的数度的平均时间复杂度是 $O(n \log n)$。
+通过 TCP 发送 $n$ 字节的消息，
+接收方收到这 $n$ 个字节的事件可能性有 $2^{n-1}$ 种
+\footnote{在 $n-1$ 个字节间隙中，依次插入 $0, 1, \ldots, n-1$ 个“隔板”，
+一共有 $C_{n-1}^0 + C_{n-1}^1 + \cdots + C_{n-1}^{n-1} = 2 ^ {n-1} $ 种情况。}。
+
 \section{列表}
 \fn{enumitem}
 \index{宏包!enumitem@\fn{enumitem}}
@@ -28,16 +37,30 @@ C/C++代码的标识符中经常出现下划线“_”，例如 \fn{boost::share
 
 \section{图表编号}
 
-\section{脚注}
+\section{脚注} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \subsection{编号}
-\begin{Code}
-\@addtoreset{footnote}{page}
-\end{Code}
+\LaTeX默认是按章重置脚注编号，
+这么如果重印的时候需要增加一个脚注，
+势必会影响后续页码，这是 \mybooktitle 排版的一个教训。
+因此我意识到脚注应该是按页重置，但是 \verb|\@addtoreset{footnote}{page}|
 无效，必须使用 \fn{footmisc} 宏包的 \fn{perpage} 选项，
 例如 \sfn{\bs usepackage[perpage]\{footmisc\}}。
 \index{宏包!footmisc@\fn{footmisc}}
-\subsection{置底}
 
+\LaTeX默认的脚注编号是数字，这有时会造成误解。
+例如给长度单位pt添加脚注，正文中可能会出现“pt\textsuperscript{2}”，
+让人误以为是面积单位，因此可以改用带圈数字。
+
+\subsection{置底}
+\centerline{\fbox{\includegraphics[page=1]{footnote-middle.pdf}}%
+\quad\fbox{\includegraphics[page=2]{footnote-middle.pdf}}}
+
+使用 \fn{footmisc} 宏包的 \fn{bottom} 选项之后，
+脚注置底。\nopagebreak
+
+\centerline{\fbox{\includegraphics[page=1]{footnote-bottom.pdf}}%
+\quad\fbox{\includegraphics[page=2]{footnote-bottom.pdf}}}
 
 \section{参考文献}
 技术书籍不是学术著作，可不必使用 BibTeX 工具，直接排版参考文献即可。
