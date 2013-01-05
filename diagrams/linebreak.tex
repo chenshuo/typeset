@@ -1,0 +1,61 @@
+\documentclass[10pt,adobefonts,fancyhdr,UTF8]{ctexbook}
+\usepackage[centering,paperwidth=100mm,paperheight=80mm,%
+body={200pt,150pt},marginparsep=10pt,marginpar=50pt,showframe]{geometry}
+\usepackage{underscore}
+\makeatletter
+\renewcommand*{\Gm@vrules@mpi}{%
+  \hb@xt@\@tempdima{\llap{\Gm@vrule}\ignorespaces
+  \hskip \textwidth\Gm@vrule}}%
+\renewcommand*{\Gm@pageframes}{%
+  \vb@xt@\z@{%
+   \ifGm@showframe
+    \if@twoside
+     \ifodd\count\z@
+       \let\@themargin\oddsidemargin
+     \else
+       \let\@themargin\evensidemargin
+     \fi
+    \fi
+    \moveright\@themargin%
+    \vb@xt@\z@{%
+     \vskip\topmargin\vb@xt@\z@{\vss}%\Gm@hrule}%
+     \vskip\headheight\vb@xt@\z@{\vss}%\Gm@hruled}%
+     \vskip\headsep\vb@xt@\z@{\vss\Gm@hrule}%
+     \@tempdima\textwidth
+     \advance\@tempdima by \marginparsep
+     \advance\@tempdima by \marginparwidth
+     \Gm@vrules@mpi
+     \vb@xt@\z@{\vss\Gm@hrule}%
+     %\vskip\footskip\vb@xt@\z@{\vss\Gm@hruled}%
+     \vss}%
+    \fi%
+  }}%
+\makeatother
+\setlength{\parskip}{2ex plus 0.5ex minus 0.5ex}
+
+\begin{document}
+\pagestyle{empty}
+\mbox{}
+\newpage
+\noindent\marginpar[\hfill Input]{}%
+一二三四五六七八九十一二三四五六七八九十
+\mbox{一二三四五六七八九十一二三四五六
+\texttt{shared_ptr}。}
+
+\vspace{1ex}
+\hrule
+
+\noindent\marginpar[\hfill Word]{}%
+一二三四五六七八九十一二三四五六七八九十\linebreak
+一二三四五六七八九十一二三四五六\linebreak
+\texttt{shared_ptr}。
+
+\vspace{1ex}
+\hrule
+
+\noindent\marginpar[\hfill \TeX]{}%
+一二三四五六七八九十一二三四五六七八九十
+一二三四五六七八九十一二三四五六
+\texttt{shared_ptr}。
+\end{document}
+

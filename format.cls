@@ -20,8 +20,11 @@ body={390pt,530pt},marginparsep=10pt,marginpar=50pt]{geometry}
 \CTEXsetup[number={\thechapter}]{chapter}
 \CTEXsetup[format+={\raggedleft}]{chapter}
 \CTEXsetup[beforeskip={10pt}]{chapter}
+\CTEXsetup[afterskip={30pt}]{chapter}
 \def\CTEX@chapter@aftername{\par} % \CTEXsetup[aftername={\par}]{chapter}
 \CTEXsetup[format+={\raggedright}]{section}
+\CTEXsetup[beforeskip={-3.0ex plus -1ex minus -.2ex}]{section}
+\CTEXsetup[afterskip={2.3ex plus .2ex minus 0.2ex}]{section}
 
 %\setmainfont{Times New Roman}
 \setmainfont{Linux Libertine O}

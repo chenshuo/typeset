@@ -73,6 +73,7 @@ pagenum.groovy '1n561' appendix.pdf  # 附录第1页的逻辑页码是561
 
 
 \section{PDF剪裁（crop）}
+\label{sec:pdfcrop}
 为了充分利用屏幕空间，也便于在电子阅读器（iPad、Kindle）上阅读校对书稿，
 我一般会把PDF剪裁为版心大小。
 例如下面左图是原始PDF，为纸张大小；右图是按固定Crop Box剪裁之后的版心。
@@ -82,7 +83,7 @@ pagenum.groovy '1n561' appendix.pdf  # 附录第1页的逻辑页码是561
 \vspace{1ex}
 \centerline{\includegraphics[scale=0.4]{crop.png}}
 
-剪裁工具是 \fn{crop.groovy}，设好 \sfn{CLASSPATH} 后可直接在命令行运行。
+剪裁工具是 \fn{crop.groovy}，设好 \sfn{CLASSPATH} 环境变量后可直接在命令行运行。
 其核心是根据版心和纸张尺寸算出左下角和右上角左边，然后剪裁每一页。
 这个工具不管PDF的内容，如果需要根据页面内容剪裁PDF，\mpar{按内容剪裁}
 可以使用Heiko Oberdiek编写的 \fn{pdfcrop} 工具，地址如下：

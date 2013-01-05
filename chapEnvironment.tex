@@ -39,6 +39,19 @@
 而且有一种如履薄冰的感觉，生怕哪天文件突然就损坏了。
 \myenddot
 
+以下展示动态规划与贪心算法的区别。这里版心宽度是20个汉字。
+第一行排满了20字，刚刚好。
+第二行排了16字，后接一个长单词，其宽度超过5个汉字，
+因此本行排不下了。Word和\LaTeX都会把长单词移到第三行，
+但是区别在于Word不会返回去调整第一行已经排好的那20个字%
+（贪心算法只管当前行，排满为止，排不下就另起一行），
+因此第二行比第一行显得稀疏，版面不匀称。
+而 \LaTeX 则会把整个段落通盘考虑，它会从第一行挪两个字到第二行，
+让前两行的字距相当，版面更匀称。
+
+\vspace{1ex}
+\centerline{\includegraphics[page=2]{linebreak-crop.pdf}}
+
 \subsection{动手之前}
 作者有能力并且有意愿完整书籍的排版，向出版社提供印刷质量的PDF文稿。
 出版社愿意改变通常的工作流程，采用作者提供的PDF文件来校对并印刷。
@@ -48,7 +61,16 @@
 %我自己使用两台24吋显示器，并排
 
 \section{软件工具}
-%本节介绍我的排版工作环境。
+本节介绍我的排版工作环境。
+
+\subsection{操作系统}
+有好用的中文输入法，能方便地用命令行处理文本文件（\fn{grep}、\fn{sort}、\fn{awk} 等）。
+
+因此我用的是一种混合办法，笔记本上安装Windows，
+再在虚拟机中安装Debian Linux，
+然后在Debian 中安装 TeX Live。
+最后用Samba共享文件夹，这样就可以在Windows下方便地编辑Linux上的文件。
+而在Linux上用 Git 管理 \fn{.tex} 源文件和图片。
 
 \subsection{\TeX 发行版}
 Linux用TeX Live，Windows用CTeX套装，Mac OS X 用 Mac TeX。
@@ -70,20 +92,23 @@ Linux用TeX Live，Windows用CTeX套装，Mac OS X 用 Mac TeX。
 因此我建议不要在排版期间升级 \LaTeX 的版本，
 这也是我在虚拟机上安装 TeX Live 的原因之一。
 
-\subsection{操作系统}
-有好用的中文输入法，能方便地用命令行处理文本文件（\fn{grep}、\fn{sort}、\fn{awk} 等）。
-
-因此我用的是一种混合办法，笔记本上安装Windows，
-再在虚拟机中安装Debian Linux，
-然后在Debian 中安装 TeX Live。
-最后用Samba共享文件夹，这样就可以在Windows下方便地编辑Linux上的文件。
-而在Linux上用 Git 管理 \fn{.tex} 源文件和图片。
-
 %\subsection{文本编辑器}
 %任何
 \subsection{PDF阅读器}
 推荐SumatraPDF，它不锁PDF文件，可以随时覆盖，并且自动刷新。
 \subsection{绘图工具}
+
+\subsection{脱机备份}
+\begindot
+\item Amazon Cloud Drive
+\item Dropbox
+\item Google Drive
+\item Microsoft Sky Drive
+\myenddot
+
+这几个网盘都有Windows和Mac客户端，
+这
+
 
 \section{文档结构}
 \subsection{UTF-8编码}
@@ -92,6 +117,10 @@ Linux用TeX Live，Windows用CTeX套装，Mac OS X 用 Mac TeX。
 不要有下划线
 
 \section{版本管理}
+\LaTeX 就好比是编译器，
+\fn{.tex} 文件是源程序，
+\fn{.pdf} 文件是编译的结果。
+
 \subsection{理想的工作流程}
 \subsection{现实的工作流程}
 
