@@ -17,15 +17,21 @@ Java 版本位于 \myurl{https://github.com/chenshuo/recipes/tree/master/java/pd
 \LaTeX 没有像 Word 那样自带中文字数统计功能，加上 \LaTeX 源文件中有许多控制字符，
 不能通过文件大小准确获知其中有多少汉字。
 为此我用C写了一个统计中文字数的小工具，名为 \fn{cwc}，即 chinese word counter，
-这个工具可以处理GBK、Unicode (UCS-2)、UTF-8这三种编码的文件。\mpar{补例子}
+这个工具可以处理GBK、Unicode (UCS-2)、UTF-8这三种编码的文件。
 源码位于 \myurl{https://github.com/chenshuo/recipes/tree/master/utility}。
 以下是一次运行的输出。
 \index{工具!cwc@\fn{cwc}}
 \begin{Code}
-$ cwc chapTools.tex chapRules.tex
-   119   1012    5329 chapTools.tex (UTF-8)
-    13     33     167 chapRules.tex (UTF-8)
-   132   1045    5496 total
+$ cwc *.tex
+    26    368    1729 abstract.tex (UTF-8)
+   149   1780    7021 chapEnvironment.tex (UTF-8)
+    24    132     737 chapExperience.tex (UTF-8)
+   262   2304   12739 chapLayout.tex (UTF-8)
+    91    671    3977 chapStyle.tex (UTF-8)
+   154   1257    6720 chapTools.tex (UTF-8)
+    12      6     192 title.tex (UTF-8)
+    41     69     963 typeset.tex (UTF-8)
+   759   6587   34078 total
   行数   字数   字节数
 \end{Code}
 

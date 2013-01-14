@@ -25,12 +25,13 @@
 \item \LaTeX 可以处理英文断字（Hyphenation），避免一行文字太稀疏。
 例如\fn{Concurrent\-Hash\-Map} 这种在技术书籍中经常出现的长类名，
 如果不断字就会造成难看的版面。这也是Word排版容易出现的问题。
-另外\LaTeX的断行和断页采用动态规划算法，排出来的版面比Word的贪心算法更匀称。
+另外\LaTeX的断行和断页采用动态规划算法，排出来的版面比Word的贪心算法更匀称，
+见 p.\pageref{ex:dynamicProgramming} 的例子。
 
 \item \LaTeX 的源文件是文本格式，可以方便地做版本管理（\fn{diff}/\fn{merge}），
 并且很容易利用和编写各种小工具来处理它。
-相反Word的 \fn{.doc}/\fn{.docx} 文件处理起来就麻烦多了，如果不是不可能的话
-（想想一句 \fn{grep | sort | uniq -c} 要写多少代码）。
+相反Word的 \fn{.doc}/\fn{.docx} 文件处理起来就麻烦多了，如果不是不可能的话。
+想想一句 \fn{grep | sort | uniq -c | sort -n} 要写多少代码。
 
 \item \LaTeX 可以方便地做出交叉引用，引用其他章节图表的页码或编号。
 \LaTeX 原稿可以分散到多个 \fn{.tex} 文件中，便于编辑。
@@ -39,7 +40,7 @@
 而且有一种如履薄冰的感觉，生怕哪天文件突然就损坏了。
 \myenddot
 
-以下展示动态规划与贪心算法的区别。这里版心宽度是20个汉字。
+以下展示动态规划与贪心算法的区别。这里版心宽度是20个汉字。\label{ex:dynamicProgramming}
 第一行排满了20字，刚刚好。
 第二行排了16字，后接一个长单词，其宽度超过5个汉字，
 因此本行排不下了。Word和\LaTeX都会把长单词移到第三行，
@@ -55,6 +56,7 @@
 \subsection{动手之前}
 作者有能力并且有意愿完整书籍的排版，向出版社提供印刷质量的PDF文稿。
 出版社愿意改变通常的工作流程，采用作者提供的PDF文件来校对并印刷。
+要事先沟通好。
 \LaTeX 不是一个傻瓜化的工具，它需要投入相当的精力去学习，才能排出满意的效果。
 
 %\section{硬件设备}
@@ -64,16 +66,20 @@
 本节介绍我的排版工作环境。
 
 \subsection{操作系统}
-有好用的中文输入法，能方便地用命令行处理文本文件（\fn{grep}、\fn{sort}、\fn{awk} 等）。
 
+操作系统应满足三个条件：
+有好用的中文输入法，有好用的PDF阅读器，
+能方便地用命令行处理文本文件（\fn{grep}、\fn{sort}、\fn{awk} 等）。
+目前看来符合这个条件的操作系统是Mac~OS X，
+但是我不可能为了写一本书去买一台新的笔记本电脑。
 因此我用的是一种混合办法，笔记本上安装Windows，
 再在虚拟机中安装Debian Linux，
 然后在Debian 中安装 TeX Live。
 最后用Samba共享文件夹，这样就可以在Windows下方便地编辑Linux上的文件。
-而在Linux上用 Git 管理 \fn{.tex} 源文件和图片。
+而在Linux上用 Git 管理 \fn{.tex} 源文件和图片，并且编译出PDF。
 
 \subsection{\TeX 发行版}
-Linux用TeX Live，Windows用CTeX套装，Mac OS X 用 Mac TeX。
+Linux用TeX Live，Windows用CTeX套装，Mac~OS X 用 Mac TeX。
 中文处理采用xelatex + xeCJK + ctex 方案
 \footnote{\myurl{http://blog.jjgod.org/2009/11/21/chinese-in-tex-live-2009/}}，
 不要采用过时的 CJK 或 CCT 方案。
@@ -91,14 +97,20 @@ Linux用TeX Live，Windows用CTeX套装，Mac OS X 用 Mac TeX。
 \vspace{1ex}
 因此我建议不要在排版期间升级 \LaTeX 的版本，
 这也是我在虚拟机上安装 TeX Live 的原因之一。
+这样可以轻松地备份整个系统，
+将来重印需要修订书中某几页的时候不必担心“动版”。
 
-%\subsection{文本编辑器}
-%任何
 \subsection{PDF阅读器}
 推荐SumatraPDF，它不锁PDF文件，可以随时覆盖，并且自动刷新。
-\subsection{绘图工具}
 
-\subsection{脱机备份}
+\subsection{离线备份}
+写书是一项耗时的任务，数据备份是必不可少的，
+防止误操作和硬件损坏带来的不可弥补的损失。
+除了 \S \ref{sec:versionControl} 讲的源文件版本管理之外，
+各种图片、表格，以及生成PDF也要及时备份，
+最好是离线（offline）备份。
+可用以下这些网盘：
+
 \begindot
 \item Amazon Cloud Drive
 \item Dropbox
@@ -107,20 +119,31 @@ Linux用TeX Live，Windows用CTeX套装，Mac OS X 用 Mac TeX。
 \myenddot
 
 这几个网盘都有Windows和Mac客户端，
-这
-
-
-\section{文档结构}
-\subsection{UTF-8编码}
-\subsection{\fn{.tex} 文件组织}
-文件名
-不要有下划线
+这也是我使用Windows桌面的原因之一。
 
 \section{版本管理}
+\label{sec:versionControl}
+
+
+我用Git管理 \fn{.tex} 文件和其他输入文件，
+并且同步到 Github 的私人仓库，
+就像这篇文章一样（\myurl{http://github.com/chenshuo/typeset}）。
+
+\subsection{理想的工作流程}
+作者和编辑都使用版本管理软件，就像开发软件那样工作。
 \LaTeX 就好比是编译器，
 \fn{.tex} 文件是源程序，
 \fn{.pdf} 文件是编译的结果。
+作者和编辑都可以修改源程序，并且通过版本管理软件来merge结果。
+考虑到作者和编辑不在同一个内网，因此一般要用公共的版本库，例如Github。
 
-\subsection{理想的工作流程}
 \subsection{现实的工作流程}
+编辑往往既不会\LaTeX也不会Git，那就之好采用原始方案，
+作者提供PDF，编辑加以评注，或者打印出来再用红笔校对。
 
+\section{\fn{.tex} 文件组织}
+\fn{.tex} 文件一律使用 UTF-8编码，一来避免各种编码转换的问题（某些人名用字在GB2312中没有定义），
+二来可以直接使用现有的Linux命令行工具来处理 \fn{.tex} 文件。
+\fn{.tex} 文件一般可以按章或按节划分，每个文件不超过1000行，以利于编辑。
+再用一个 \fn{.tex} 文件把它们 \mn{include} 到一起。
+\fn{.tex} 和图片文件的文件名不要有下划线。
