@@ -32,7 +32,8 @@ $\sin x = (\mathrm{e}^{\mathrm{i}x} - \mathrm{e}^{-\mathrm{i}x})/2\mathrm{i}$、
 
 \section{列表}
 \LaTeX 默认的列表环境（\fn{itemize} 和 \fn{enumerate}）是为多行文字准备的，
-因此上下间距较大。我一般使用 \fn{enumitem} 宏包来重新定义列表环境，并且定义几个简单的命令来使用它。
+因此上下间距较大。我一般使用 \fn{enumitem} 宏包来重新定义列表环境，
+并且定义几个简单的命令来使用它（\mn{begindot} 和 \mn{myenddot}，\mn{beginnum} 和 \mn{myendnum}）。
 \index{宏包!enumitem@\fn{enumitem}}
 \begin{Code}
 \newcommand\begindot{\begin{itemize}
@@ -58,25 +59,36 @@ parsep=0pt plus 2pt minus 2pt]}
 
 \subsection{编号}
 通常单个小节不编号，因此 \S \ref{subsec:noChineseItalic} 和本小节是错的。
-因此要改用\mn{subsection*} 命令。
+应要改用\mn{subsection*} 命令。
 
 \section{图表编号} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-图的标题位于下方，按章编号。
+我不使用浮动环境，因此自己定义了 \mn{figcaption} 和 \mn{tabcaption} 命令来为图表编号。
+图的标题位于下方，按章编号（图1-1、图1-2、图2-1 等等）。
 例如
 
 \begin{center}
-
+\includegraphics{sp0.eps}\\
+\figcaption{\fn{shared_ptr} 的数据结构}\label{fig:sharedptr}
 \end{center}
 
 
-表的标题位于上方，按章编号。
+表的标题位于上方，按章编号（表1-1、表1-2、表2-1 等等）。
 例如
 
 \begin{center}
+\tabcaption{水平空格命令的长度}
 
+\vspace{1ex}
+\begin{tabular}{ccl}
+\hline
+\textbf{命令} & \textbf{长度} & \textbf{用途}\\
+\hline
+\mn{quad} & 10pt & 图表编号与图表标题之间的全角空格\\
+\mn{,} & 1.67pt & 千分空，例如 65\,536\\
+\hline
+\end{tabular}
 \end{center}
-
 
 \section{脚注} %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -94,12 +106,16 @@ parsep=0pt plus 2pt minus 2pt]}
 让人误以为是面积单位，因此可以改用带圈数字。
 
 \subsection{置底}
+\LaTeX默认的脚注位置不是固定置底，而有可能随页面内容而浮动。例如 \myurl{footnote-middle.tex}。
+
+\vspace{1ex}
 \centerline{\fbox{\includegraphics[page=1]{footnote-middle.pdf}}%
 \quad\fbox{\includegraphics[page=2]{footnote-middle.pdf}}}
 
 使用 \fn{footmisc} 宏包的 \fn{bottom} 选项之后，
-脚注置底。\nopagebreak
+脚注置底。见 \myurl{footnote-bottom.tex}。 \nopagebreak
 
+\vspace{1ex}
 \centerline{\fbox{\includegraphics[page=1]{footnote-bottom.pdf}}%
 \quad\fbox{\includegraphics[page=2]{footnote-bottom.pdf}}}
 

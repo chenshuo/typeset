@@ -146,10 +146,11 @@ pagenum.groovy '1n561' appendix.pdf  # 附录第1页的逻辑页码是561
 
 \section{PDF字体嵌入}
 出版社拿到作者提供的终稿PDF之后，如果没有进一步修改，就会准备印刷了。
-第一步是让出片公司打印出胶片，即“出片”。
+第一步是让出片公司用激光照排机打印出胶片，即“出片”。
 这种公司使用的操作系统很可能与作者不同，特别是安装的字体可能不一致。
 为了防止出现文字乱码或字体错乱，出片公司一般都会要求提供嵌入全部字体的PDF文件。
 
+一个办法是修改 Ghostscript 的配置文件，让默认字体全部迁入，例如：
 \begin{Codex}[label=/usr/share/ghostscript/???/Resource/Init/gs_pdfwr.ps]
 /.standardfonts [
 %  /Courier /Courier-Bold /Courier-Oblique /Courier-BoldOblique
@@ -158,3 +159,6 @@ pagenum.groovy '1n561' appendix.pdf  # 附录第1页的逻辑页码是561
 %  /Symbol /ZapfDingbats
 ] readonly def
 \end{Codex}
+
+还有一个办法是用 Adobe Acrobat Reader 找出 PDF 中没有嵌入的字体，
+再用 iText 将字体文件嵌入，例子见 \myurl{http://itextpdf.com/examples/iia.php?id=288}。

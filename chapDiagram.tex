@@ -1,0 +1,58 @@
+\chapter{插图}
+
+尽量用矢量图，少用点阵图（屏幕截图只适合用于step-by-step介绍软件操作）。
+
+\section{绘图软件}
+
+\mybooktitle 的排版过程中我使用了多种绘图工具，这里简单列举一下。
+这里举的插图例子大多数可以在样章 \footnote{\myurl{http://vdisk.weibo.com/s/mtupb}} 第6章中找到。
+以下这些软件都可以生成矢量图（EPS或PDF文件），印刷效果较好。
+
+\subsection{Graphviz}
+适合绘制依赖关系图，包括 \fn{\#include} 头文件的关系图（书p.132图~6-1）、
+简单的 class 继承关系图等。
+
+优点：自动布局。
+
+缺点：无法输入中文。布局不易调整。
+\subsection{gpic}
+
+适合绘制线框图，例如数据结构。本文的图~\ref{fig:sharedptr} 就是用 gpic 绘制的。
+gpic 可参考 Brian W. Kernighan 的 《PIC---A Graphics Language for Typesetting, User Manual》
+和 Eric S. Raymond 的《Making Pictures with GNU PIC》。
+
+缺点：无法输入中文。
+
+\subsection{METAPOST}
+适合绘制函数图像，例如书p.349图~9-5。
+
+\subsection{Visio}
+适合绘制较复杂的 class diagram（书p.132图~6-2），sequence diagram（例如书p.170图~6-12）。
+需要安装 	
+Visio Stencil and Template for UML 2.2
+\footnote{http://www.softwarestencils.com/uml/index.html}。
+
+可以输入中文，可以可视化编辑，可以导出为 PDF 文件，经过剪裁去掉白边
+\footnote{用 \fn{pdfcrop} 工具 \S \ref{sec:pdfcrop} 按内容剪裁。}
+之后可以方便地嵌入 \LaTeX 文档。
+
+缺点：多幅内容相近的图片不易统一修改，例如《为什么多线程读写 \fn{shared_ptr} 要加锁？》%
+\footnote{\myurl{http://chenshuo.googlecode.com/files/CppEngineering.pdf}}
+中绘制的多幅 \fn{shared_ptr} 内部指针变化图。
+
+\subsection{Word}
+适合复杂的表格，例如书p.161表~6-1。
+可以输出为PDF文件，剪裁之后以插图的方式嵌入 \LaTeX 文档。
+
+\subsection{Excel}
+适合绘制点数较少的性能数据图（$x$-$y$ 坐标系），例如书p.147图~6-3。
+
+\subsection{Gnuplot}
+适合绘制点数较多的性能数据图，例如书p.150图~6-6。
+
+%\section{图片工具}
+%\subsection{pdfcrop}
+%\subsection{ps2eps}
+%\subsection{eps2png}
+
+\section{待续……}

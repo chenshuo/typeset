@@ -26,6 +26,31 @@ body={390pt,530pt},marginparsep=10pt,marginpar=50pt]{geometry}
 \CTEXsetup[beforeskip={-3.0ex plus -1ex minus -.2ex}]{section}
 \CTEXsetup[afterskip={2.3ex plus .2ex minus 0.2ex}]{section}
 
+\renewcommand \thefigure{\thechapter-\arabic{figure}}
+\renewcommand \thetable{\thechapter-\arabic{table}}
+
+\newcommand\figcaption[1]{\def\@captype{figure}\caption{#1}}
+\newcommand\tabcaption[1]{\def\@captype{table}\caption{#1}}
+
+\long\def\@caption#1[#2]#3{%
+  \addcontentsline{\csname ext@#1\endcsname}{#1}%
+    {\protect\numberline{\csname fnum@#1\endcsname}{ \ignorespaces #2}}% change "the" to "fnum@"
+    \normalsize
+    \@makecaption{\csname fnum@#1\endcsname}{\ignorespaces #3}}
+
+\long\def\@makecaption#1#2{%
+  \vskip\abovecaptionskip
+  \sbox\@tempboxa{#1\quad#2}%
+  \ifdim \wd\@tempboxa >\hsize
+    #1\quad#2\par
+  \else
+    \global \@minipagefalse
+    \hb@xt@\hsize{\hfil\box\@tempboxa\hfil}%
+  \fi
+  \vskip\belowcaptionskip}
+
+\setlength\abovecaptionskip{0pt}
+  
 %\setmainfont{Times New Roman}
 \setmainfont{Linux Libertine O}
 %\setmainfont{TeX Gyre Pagella}
