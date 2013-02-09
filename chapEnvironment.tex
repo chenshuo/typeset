@@ -34,16 +34,18 @@
 Word 可以关闭自动更正，但是一旦整个流程（作者、编辑、校对、出片）中有一个人的设置不同，
 稿子就有可能被误改。
 
-\item \LaTeX 可以处理英文断字（Hyphenation），避免一行文字太稀疏。
-例如\fn{Concurrent\-Hash\-Map} 这种在技术书籍中经常出现的长类名，
-如果不断字就会造成难看的版面。这也是Word排版容易出现的问题。
-另外\LaTeX的断行和断页采用动态规划算法，排出来的版面比Word的贪心算法更匀称，
-见 p.\pageref{ex:dynamicProgramming} 的例子。
-
 \item \LaTeX 的源文件是文本格式，可以方便地做版本管理（\fn{diff}/\fn{merge}），
 并且很容易利用和编写各种小工具来处理它。
 相反Word的 \fn{.doc}/\fn{.docx} 文件处理起来就麻烦多了，如果不是不可能的话。
 想想一句 \fn{grep | sort | uniq -c | sort -n} 要写多少代码。
+
+\newpage
+\item \LaTeX 可以处理英文断字（Hyphenation），避免一行文字太稀疏。
+例如\fn{Concurrent\-Hash\-Map} 这种在技术书籍中经常出现的长类名，
+如果不断字就会造成难看的版面。这也是Word排版容易出现的问题。
+另外\LaTeX的断行和断页采用动态规划算法，排出来的版面比Word的贪心算法更匀称，
+见后文的例子。
+
 
 \item \LaTeX 可以方便地做出交叉引用，引用其他章节图表的页码或编号。
 \LaTeX 原稿可以分散到多个 \fn{.tex} 文件中，便于编辑。
