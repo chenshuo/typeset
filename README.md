@@ -22,4 +22,4 @@
 
 6. 编译。用TeXstudio打开`typeset.tex`，点击界面上的绿色箭头就可以开始编译了。
 
-    在下方的窗口可以看到TeXstudio正在使用的编译命令是`xelatex -synctex=1 -interaction=nonstopmode "ACM-cheat-sheet".tex`
+    在下方的窗口可以看到TeXstudio正在使用的编译命令是`xelatex -synctex=1 -interaction=nonstopmode "typeset".tex`
