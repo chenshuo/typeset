@@ -26,7 +26,7 @@
 \myenddot
 
 
-\section{为什么要用\LaTeX排版？}
+\section{为什么要用\LaTeX 排版？}
 \begindot
 \item \LaTeX 不会自作聪明地自动更正，例如句首字母大写
 （关键字 \kw{double} 变为 \kw{Double}），
@@ -44,7 +44,7 @@ Word 可以关闭自动更正，但是一旦整个流程（作者、编辑、校
 \item \LaTeX 可以处理英文断字（Hyphenation），避免一行文字太稀疏。
 例如\fn{Concurrent\-Hash\-Map} 这种在技术书籍中经常出现的长类名，
 如果不断字就会造成难看的版面。这也是Word排版容易出现的问题。
-另外\LaTeX的断行和断页采用动态规划算法，排出来的版面比Word的贪心算法更匀称，
+另外\LaTeX 的断行和断页采用动态规划算法，排出来的版面比Word的贪心算法更匀称，
 见后文的例子。
 
 
@@ -58,7 +58,7 @@ Word 可以关闭自动更正，但是一旦整个流程（作者、编辑、校
 以下展示动态规划与贪心算法的区别。这里版心宽度是20个汉字。\label{ex:dynamicProgramming}
 第一行排满了20字，刚刚好。
 第二行排了16字，后接一个长单词，其宽度超过5个汉字，
-因此本行排不下了。Word和\LaTeX都会把长单词移到第三行，
+因此本行排不下了。Word和\LaTeX 都会把长单词移到第三行，
 但是区别在于Word不会返回去调整第一行已经排好的那20个字%
 （贪心算法只管当前行，排满为止，排不下就另起一行），
 因此第二行比第一行显得稀疏，版面不匀称。
@@ -98,7 +98,7 @@ Linux用TeX Live，Windows用CTeX套装，Mac~OS X 用 Mac TeX。
 \footnote{\myurl{http://blog.jjgod.org/2009/11/21/chinese-in-tex-live-2009/}}，
 不要采用过时的 CJK 或 CCT 方案。
 
-注意，\TeX本身是非常稳定的，但是中文处理则在不断改进。
+注意，\TeX 本身是非常稳定的，但是中文处理则在不断改进。
 例如TeX Live 2010和TeX Live 2012在处理中英文混排方面就有区别，
 造成“动版”，严重时会影响既有分页。
 
@@ -153,7 +153,7 @@ Linux用TeX Live，Windows用CTeX套装，Mac~OS X 用 Mac TeX。
 GitHub 的私有 repository 可保证数据安全。
 
 \subsection{现实的工作流程}
-编辑往往既不会\LaTeX也不会Git，那就之好采用原始方案，
+编辑往往既不会\LaTeX 也不会Git，那就之好采用原始方案，
 作者提供PDF，编辑加以评注，或者打印出来再用红笔校对。
 
 \section{\fn{.tex} 文件组织}
