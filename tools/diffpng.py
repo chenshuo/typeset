@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# $ sudo apt-get install python-pil python-imaging
+
 import Image
 import ImageChops
 import sys
