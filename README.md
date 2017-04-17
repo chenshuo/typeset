@@ -1,11 +1,11 @@
 用 LaTeX 排版技术书籍
 =====================
-##PDF下载
+## PDF下载
 <http://code.google.com/p/chenshuo/downloads/detail?name=typeset.pdf>
 
 以下说明由网友 Frank Dai (https://github.com/soulmachine) 编写。
 
-##在Windows下编译
+## 在Windows下编译
 1. 安装Tex Live 2015 <http://www.tug.org/texlive/>。把bin目录例如`D:\texlive\2015\bin\win32`加入PATH环境变量。
 1. 安装字体。这个LaTex模板总共使用了10个字体，下载地址 <http://pan.baidu.com/s/1jIgyuRc> ，有的字体Windows自带了，有的字体Ubuntu自带了，但都不全，还是一次性安装完所有字体比较方便。
 1. 安装TeXstudio <http://texstudio.sourceforge.net/>
@@ -26,7 +26,7 @@
 
     在下方的窗口可以看到TeXstudio正在使用的编译命令是`xelatex -synctex=1 -interaction=nonstopmode "typeset".tex`
 
-##在Ubuntu下编译
+## 在Ubuntu下编译
 1. 安装Tex Live 2015 <http://www.tug.org/texlive/>
 	
 	1.1. 下载TexLive 2015 的ISO 光盘，地址 <http://www.tug.org/texlive/acquire-iso.html>
