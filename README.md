@@ -11,7 +11,7 @@
 ### 命令行编译
 
 ```bash
-docker run -it --rm -v $(pwd):/project soulmachine/texlive bash -c "cd /project && xelatex -synctex=1 -interaction=nonstopmode typeset.tex"
+docker run -it --rm -v $(pwd):/project -w /project soulmachine/texlive xelatex -interaction=nonstopmode typeset.tex
 ```
 
 ### vscode下编译
