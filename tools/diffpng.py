@@ -1,9 +1,9 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # $ sudo apt-get install python-pil python-imaging
 
-import Image
-import ImageChops
+from PIL import Image
+from PIL import ImageChops
 import sys
 
 if len(sys.argv) == 4:
@@ -13,4 +13,4 @@ if len(sys.argv) == 4:
   new = Image.composite(red, orig.convert('RGB'), diff)
   new.save(sys.argv[3])
 else:
-  print "Usage: %s old.png new.png diff.png" % sys.argv[0]
+  print("Usage: %s old.png new.png diff.png" % sys.argv[0])
