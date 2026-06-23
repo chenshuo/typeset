@@ -81,5 +81,5 @@ def show_results(items, line_width, breaks):
   total_demerits += demerits
   print(f'{ratio:6.3f} {demerits:8} ', line)
   print('-----')
-  print('total_demerits', total_demerits)
+  print('Total demerits', total_demerits)
 
