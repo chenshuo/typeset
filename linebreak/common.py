@@ -42,6 +42,12 @@ def badness(ratio: float) -> int:
   # not using round() because Python3's round-half-to-even
   return int(100 * (abs(ratio) ** 3) + 0.5)
 
+def print_line(ratio, line):
+  b = badness(ratio)
+  demerits = (1 + b) ** 2
+  print(f'{ratio:6.3f} {b:7} {demerits:8} ', line)
+  return demerits
+
 def show_results(items, line_width, breaks):
   lines = []
   line = ''
@@ -49,13 +55,12 @@ def show_results(items, line_width, breaks):
   stretch = 0
   shrink = 0
   total_demerits = 0
-  print(' ratio demerits  text')
-  print(' ----- --------  ----')
+  print(' ratio badness demerits  text')
+  print(' ----- ------- --------  ----')
   for i, it in enumerate(items):
     if i in breaks:
       ratio = get_ratio(line_width, width, stretch, shrink)
-      demerits = (1 + badness(ratio)) ** 2
-      print(f'{ratio:6.3f} {demerits:8} ', line)
+      demerits = print_line(ratio, line)
       total_demerits += demerits
 
       line = ''
@@ -77,9 +82,8 @@ def show_results(items, line_width, breaks):
   # remaining
   stretch += math.inf
   ratio = get_ratio(line_width, width, stretch, shrink)
-  demerits = (1 + badness(ratio)) ** 2
+  demerits = print_line(ratio, line)
   total_demerits += demerits
-  print(f'{ratio:6.3f} {demerits:8} ', line)
   print('-----')
   print('Total demerits', total_demerits)
 
