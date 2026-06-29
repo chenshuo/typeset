@@ -81,6 +81,7 @@ def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
                        cum.stretch + item.stretch,
                        cum.shrink + item.shrink,
                        a.total_demerits + demerits, a)
+        # TODO: only add Breakpoint with smallest total_demerits to survivors.
         survivors.append(s)
 
   return survivors

@@ -7,6 +7,17 @@ CSLI Lecture Notes 78, 1999.
 import math
 from common import Box, Glue
 
+SAMPLE_TEXT = """In olden times when wishing still helped one, there lived a king
+ whose daughters were all beautiful; and the youngest was so beautiful
+ that the sun itself, which has seen so much, was astonished whenever it
+ shone in her face. Close by the king's castle lay a great dark forest,
+ and under an old lime-tree in the forest was a well, and when the day
+ was very warm, the king's child went out into the forest and sat down
+ by the side of the cool fountain; and when she was bored she took a
+ golden ball, and threw it up on high and caught it; and this ball was
+ her favorite plaything."""
+
+
 def get_sample_paragraph():
 
   # Sample font metrics from Knuth & Plass 1981 paper.
@@ -23,22 +34,13 @@ def get_sample_paragraph():
     ';': Glue(6, 4, 1),
     '.': Glue(8, 6, 1),
   }
-  text = """In olden times when wishing still helped one, there lived a king
- whose daughters were all beautiful; and the youngest was so beautiful
- that the sun itself, which has seen so much, was astonished whenever it
- shone in her face. Close by the king's castle lay a great dark forest,
- and under an old lime-tree in the forest was a well, and when the day
- was very warm, the king's child went out into the forest and sat down
- by the side of the cool fountain; and when she was bored she took a
- golden ball, and threw it up on high and caught it; and this ball was
- her favorite plaything."""
 
   items = [Box(18)]  # indent of first line by 1 em
 
   width = 0
   word = ""
 
-  for ch in text:
+  for ch in SAMPLE_TEXT:
     if ch in letter_widths:
       width += letter_widths[ch]
       word += ch

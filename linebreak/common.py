@@ -7,6 +7,7 @@ class Box:
 
   width: float
   text: str = ""
+  glyphs: list = None
 
 
 @dataclass
@@ -17,6 +18,8 @@ class Glue:
   stretch: float
   shrink: float
 
+  def get_width(self, ratio):
+    return self.width + ratio * (self.stretch if ratio >= 0 else self.shrink)
 
 def get_ratio(line_width, total_width, total_stretch, total_shrink):
   if total_width == line_width:
@@ -45,12 +48,13 @@ def badness(ratio: float) -> int:
 def print_line(ratio, line):
   b = badness(ratio)
   demerits = (1 + b) ** 2
-  print(f'{ratio:6.3f} {b:7} {demerits:8} ', line)
+  text = ''.join(x.text for x in line)
+  print(f'{ratio:6.3f} {b:7} {demerits:8} ', text)
   return demerits
 
 def show_results(items, line_width, breaks):
   lines = []
-  line = ''
+  line = []
   width = 0
   stretch = 0
   shrink = 0
@@ -62,28 +66,33 @@ def show_results(items, line_width, breaks):
       ratio = get_ratio(line_width, width, stretch, shrink)
       demerits = print_line(ratio, line)
       total_demerits += demerits
+      lines.append((ratio, line))
 
-      line = ''
+      line = []
       width = 0
       stretch = 0
       shrink = 0
       continue
 
     if isinstance(it, Box):
-      line += it.text
+      line.append(it)
       width += it.width
-
     elif isinstance(it, Glue):
-      line += ' '
+      line.append(it)
+      it.text = ' '
       width += it.width
       stretch += it.stretch
       shrink += it.shrink
+    else:
+      assert False and "Unknown item"
 
   # remaining
   stretch += math.inf
   ratio = get_ratio(line_width, width, stretch, shrink)
   demerits = print_line(ratio, line)
   total_demerits += demerits
+  lines.append((ratio, line))
   print('-----')
   print('Total demerits', total_demerits)
+  return lines
 
