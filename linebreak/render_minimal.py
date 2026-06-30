@@ -14,6 +14,7 @@ from common import Box, Glue, show_results
 from minimal import line_break
 from sample import SAMPLE_TEXT
 
+LINE_SKIP = 1.4  # multipler of font size for baseline vertical distance
 FREETYPE_SCALE = 64
 DEFAULT_FONT = "fonts/LinLibertine_R.otf"
 
@@ -60,8 +61,9 @@ def get_items(font_file, size, text):
     space.guess_segment_properties()
     hb.shape(font, space)
     space_width = space.glyph_positions[0].x_advance / FREETYPE_SCALE
-    print(f'space_width: {space_width}')
+    print(f'space_width: {space_width}+{space_width/2}-{space_width/3:.3f} px')
     space_glue = Glue(space_width, space_width / 2, space_width / 3)
+    space_glue.text = ' '
 
     for word in text.split():
         buf = hb.Buffer()
@@ -97,8 +99,7 @@ def render(font, size, lines, line_width, output):
     ft_face.set_char_size(int(size * FREETYPE_SCALE), 0, 72, 72)
     left_margin = size
     right_margin = size
-    line_skip = 1.4
-    line_height = size * line_skip
+    line_height = size * LINE_SKIP
     img_width = int(left_margin + line_width + right_margin)
     img_height = int((len(lines) + 1) * line_height)
 
@@ -115,7 +116,7 @@ def render(font, size, lines, line_width, output):
     _libcairo.cairo_set_font_size(raw_cr, ctypes.c_double(size))
 
     start = datetime.now()
-    pos_y = line_height
+    pos_y = line_height + size * (LINE_SKIP - 1.0)
     for ratio, line in lines:
         pos_x = left_margin
         for it in line:
@@ -142,7 +143,7 @@ def main():
     ap.add_argument("--font", default=DEFAULT_FONT, help="Path to OTF/TTF/TTC font file")
     ap.add_argument("--font_index", type=int, default=0, help="Font index of TTC font")
     ap.add_argument("--size", type=float, default=24.0, help="Font size in px (default: 24)")
-    ap.add_argument("--line_width", type=float, default=600.0, help="Line width in px (default: 600)")
+    ap.add_argument("--text_width", type=float, default=29.0, help="Text width in em (default: 29)")
     ap.add_argument("--output", default="output.png", help="Output PNG path (default: output.png)")
     args = ap.parse_args()
 
@@ -150,15 +151,16 @@ def main():
         print(f"Error: Font file '{args.font}' not found.")
         sys.exit(1)
 
-
+    line_width = args.size * args.text_width
+    print(f'line_width: {line_width}px')
     text = args.text if args.text else SAMPLE_TEXT
     items = get_items(args.font, args.size, text)
     print(f'items: {len(items)}')
-    breaks = line_break(items, args.line_width, 1.0)
+    breaks = line_break(items, line_width, 1.0)
 
-    lines = show_results(items, args.line_width, breaks)
+    lines = show_results(items, line_width, breaks)
     print(f'lines: {len(lines)}')
-    render(args.font, args.size, lines, args.line_width, args.output)
+    render(args.font, args.size, lines, line_width, args.output)
 
 
 if __name__ == '__main__':

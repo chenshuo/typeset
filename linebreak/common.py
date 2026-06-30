@@ -21,6 +21,7 @@ class Glue:
   def get_width(self, ratio):
     return self.width + ratio * (self.stretch if ratio >= 0 else self.shrink)
 
+
 def get_ratio(line_width, total_width, total_stretch, total_shrink):
   if total_width == line_width:
     return 0.0
@@ -44,6 +45,7 @@ def badness(ratio: float) -> int:
 
   # not using round() because Python3's round-half-to-even
   return int(100 * (abs(ratio) ** 3) + 0.5)
+
 
 def print_line(ratio, line):
   b = badness(ratio)
@@ -79,7 +81,6 @@ def show_results(items, line_width, breaks):
       width += it.width
     elif isinstance(it, Glue):
       line.append(it)
-      it.text = ' '
       width += it.width
       stretch += it.stretch
       shrink += it.shrink
