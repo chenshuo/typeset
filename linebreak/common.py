@@ -54,6 +54,7 @@ def print_line(ratio, line):
   print(f'{ratio:6.3f} {b:7} {demerits:8} ', text)
   return demerits
 
+
 def show_results(items, line_width, breaks):
   lines = []
   line = []
