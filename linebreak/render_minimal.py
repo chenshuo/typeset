@@ -63,7 +63,6 @@ def get_items(font_file, size, text):
     space_width = space.glyph_positions[0].x_advance / FREETYPE_SCALE
     print(f'space_width: {space_width}+{space_width/2}-{space_width/3:.3f} px')
     space_glue = Glue(space_width, space_width / 2, space_width / 3)
-    space_glue.text = ' '
 
     for word in text.split():
         buf = hb.Buffer()

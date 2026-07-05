@@ -1,9 +1,8 @@
-"""Minimal implementation of Knuth-Plass line breaking algorithm.
+"""Plain implementation of Knuth-Plass line breaking algorithm.
 
-Only Box and Glue, no Penalty. No hyphenation.
+Box, Glue, and Penalty.  No double hyphen demerits, no fit classes.
 """
 
-import common
 from common import *
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
@@ -21,13 +20,14 @@ class Breakpoint:
 
 TRACE = False
 
-
 def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
   active: List[Breakpoint] = [Breakpoint(-1, 0, 0, 0, 0, 0)]
 
   # Cumulative width, stretch and shrink of items before the current position.
   cum = Glue(0, 0, 0)
   for i, item in enumerate(items):
+    is_break = False
+
     if isinstance(item, Box):
       cum.width += item.width
     elif isinstance(item, Glue):
@@ -40,6 +40,7 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
       cum.width += item.width
       cum.stretch += item.stretch
       cum.shrink += item.shrink
+
     else:
       assert False and "Unknown item"
 
@@ -63,6 +64,9 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
 
 
 def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
+  AWFUL_BAD = 1_000_000_000
+  min_demerits = AWFUL_BAD
+  best_breakpoint = None
   survivors = []
   for a in active:
     ratio = get_ratio(line_width,
@@ -77,14 +81,17 @@ def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
     # Only consider feasible breakpoints.
     if -1 <= ratio <= max_stretch_ratio:
         b = badness(ratio)
-        demerits = (1 + b)**2
-        # print(items[i-1], demerits)
+        demerits = (LINE_PENALTY + b)**2
         s = Breakpoint(i, a.line + 1, cum.width + item.width,
                        cum.stretch + item.stretch,
                        cum.shrink + item.shrink,
                        a.total_demerits + demerits, a)
-        # TODO: only add Breakpoint with smallest total_demerits to survivors.
-        survivors.append(s)
+        if s.total_demerits < min_demerits:
+          min_demerits = s.total_demerits
+          best_breakpoint = s
+
+  if min_demerits < AWFUL_BAD:
+    survivors.append(best_breakpoint)
 
   return survivors
 
@@ -95,7 +102,6 @@ if __name__ == "__main__":
     print("Items:", len(items))
 
     TRACE = True
-    common.LINE_PENALTY = 1
     line_width = 500
     breaks = line_break(items, line_width)
     print("Breaks:", breaks)

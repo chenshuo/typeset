@@ -17,10 +17,18 @@ class Glue:
   width: float
   stretch: float
   shrink: float
+  text: str = ' '
 
   def get_width(self, ratio):
     return self.width + ratio * (self.stretch if ratio >= 0 else self.shrink)
 
+
+@dataclass
+class Penalty:
+  """."""
+
+  value: int
+  width: float = 0.0
 
 def get_ratio(line_width, total_width, total_stretch, total_shrink):
   if total_width == line_width:
@@ -38,6 +46,7 @@ def get_ratio(line_width, total_width, total_stretch, total_shrink):
   return math.nan
 
 INF_BAD = 10000
+LINE_PENALTY = 10
 
 def badness(ratio: float) -> int:
   if math.isnan(ratio) or ratio < -1.0:
@@ -49,7 +58,7 @@ def badness(ratio: float) -> int:
 
 def print_line(ratio, line):
   b = badness(ratio)
-  demerits = (1 + b) ** 2
+  demerits = (LINE_PENALTY + b) ** 2
   text = ''.join(x.text for x in line)
   print(f'{ratio:6.3f} {b:7} {demerits:8} ', text)
   return demerits
