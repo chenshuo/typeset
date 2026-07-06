@@ -27,22 +27,33 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
   cum = Glue(0, 0, 0)
   for i, item in enumerate(items):
     is_break = False
+    penalty = 0
+    if isinstance(item, Glue):
+      # Breakable at glue after a box
+      if i > 0 and isinstance(items[i-1], Box):
+        is_break = True
+    elif isinstance(item, Penalty):
+      # Or less than INF_PENALTY
+      if item.value < INF_PENALTY:
+        is_break = True
+        penalty = item.value
 
+    if is_break:
+      active = _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio)
+      if not active:
+        raise RuntimeError(f"No feasible breakpoints found with line width "
+                           "{line_width} and max stretch ratio {max_stretch_ratio}.")
+
+    # Update running sums
     if isinstance(item, Box):
       cum.width += item.width
     elif isinstance(item, Glue):
-      # Only breakable at glue after a box
-      if i > 0 and isinstance(items[i-1], Box):
-        active = _try_break(active, cum, item, i, line_width, max_stretch_ratio)
-        if not active:
-          raise RuntimeError(f"No feasible breakpoints found with line width "
-                             "{line_width} and max stretch ratio {max_stretch_ratio}.")
       cum.width += item.width
       cum.stretch += item.stretch
       cum.shrink += item.shrink
-
     else:
-      assert False and "Unknown item"
+      # Penalty has no width
+      assert isinstance(item, Penalty)
 
   if TRACE:
     print("Active:", len(active))
@@ -63,8 +74,8 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
   return breaks
 
 
-def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
-  AWFUL_BAD = 1_000_000_000
+def _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio):
+  AWFUL_BAD = 0x3fff_ffff
   min_demerits = AWFUL_BAD
   best_breakpoint = None
   survivors = []
@@ -94,6 +105,7 @@ def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
     survivors.append(best_breakpoint)
 
   return survivors
+
 
 if __name__ == "__main__":
     from sample import get_sample_paragraph

@@ -1,5 +1,6 @@
 import math
 from dataclasses import dataclass
+from typing import List, Optional, Tuple
 
 @dataclass
 class Box:
@@ -30,6 +31,7 @@ class Penalty:
   value: int
   width: float = 0.0
 
+
 def get_ratio(line_width, total_width, total_stretch, total_shrink):
   if total_width == line_width:
     return 0.0
@@ -46,6 +48,7 @@ def get_ratio(line_width, total_width, total_stretch, total_shrink):
   return math.nan
 
 INF_BAD = 10000
+INF_PENALTY = 10000
 LINE_PENALTY = 10
 
 def badness(ratio: float) -> int:
@@ -64,7 +67,7 @@ def print_line(ratio, line):
   return demerits
 
 
-def show_results(items, line_width, breaks):
+def show_results(items, line_width, breaks) -> List[Tuple[float, List]]:
   lines = []
   line = []
   width = 0
