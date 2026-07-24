@@ -23,6 +23,13 @@ class Glue:
   def get_width(self, ratio):
     return self.width + ratio * (self.stretch if ratio >= 0 else self.shrink)
 
+Glue.ZERO = Glue(0, 0, 0)
+Glue.INF = Glue(0, math.inf, 0)
+
+
+INF_BAD = 10000
+INF_PENALTY = 10000
+EJECT_PENALTY = -10000
 
 @dataclass
 class Penalty:
@@ -30,6 +37,10 @@ class Penalty:
 
   value: int
   width: float = 0.0
+  text: str = ''
+
+Penalty.NO_BREAK = Penalty(INF_PENALTY)
+Penalty.EJECT = Penalty(EJECT_PENALTY)
 
 
 def get_ratio(line_width, total_width, total_stretch, total_shrink):
@@ -47,9 +58,6 @@ def get_ratio(line_width, total_width, total_stretch, total_shrink):
       return (line_width - total_width) / total_shrink
   return math.nan
 
-INF_BAD = 10000
-INF_PENALTY = 10000
-LINE_PENALTY = 10
 
 def badness(ratio: float) -> int:
   if math.isnan(ratio) or ratio < -1.0:
@@ -58,55 +66,4 @@ def badness(ratio: float) -> int:
   # not using round() because Python3's round-half-to-even
   return int(100 * (abs(ratio) ** 3) + 0.5)
 
-
-def print_line(ratio, line):
-  b = badness(ratio)
-  demerits = (LINE_PENALTY + b) ** 2
-  text = ''.join(x.text for x in line)
-  print(f'{ratio:6.3f} {b:7} {demerits:8} ', text)
-  return demerits
-
-
-def show_results(items, line_width, breaks) -> List[Tuple[float, List]]:
-  lines = []
-  line = []
-  width = 0
-  stretch = 0
-  shrink = 0
-  total_demerits = 0
-  print(' ratio badness demerits  text')
-  print(' ----- ------- --------  ----')
-  for i, it in enumerate(items):
-    if i in breaks:
-      ratio = get_ratio(line_width, width, stretch, shrink)
-      demerits = print_line(ratio, line)
-      total_demerits += demerits
-      lines.append((ratio, line))
-
-      line = []
-      width = 0
-      stretch = 0
-      shrink = 0
-      continue
-
-    if isinstance(it, Box):
-      line.append(it)
-      width += it.width
-    elif isinstance(it, Glue):
-      line.append(it)
-      width += it.width
-      stretch += it.stretch
-      shrink += it.shrink
-    else:
-      assert False and "Unknown item"
-
-  # remaining
-  stretch += math.inf
-  ratio = get_ratio(line_width, width, stretch, shrink)
-  demerits = print_line(ratio, line)
-  total_demerits += demerits
-  lines.append((ratio, line))
-  print('-----')
-  print('Total demerits', total_demerits)
-  return lines
 

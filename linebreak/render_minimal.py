@@ -10,8 +10,8 @@ import uharfbuzz as hb
 import uniseg
 
 from datetime import datetime
-from common import Box, Glue, show_results
-from minimal import line_break
+from common import Box, Glue
+from minimal import line_break, show_results
 from sample import SAMPLE_TEXT
 
 LINE_SKIP = 1.4  # multipler of font size for baseline vertical distance

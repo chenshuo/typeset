@@ -35,8 +35,8 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
       if i > 0 and isinstance(items[i-1], Box):
         active = _try_break(active, cum, item, i, line_width, max_stretch_ratio)
         if not active:
-          raise RuntimeError(f"No feasible breakpoints found with line width "
-                             "{line_width} and max stretch ratio {max_stretch_ratio}.")
+          raise RuntimeError(f"No feasible breakpoints found at {i} with line width "
+                             f"{line_width} and max stretch ratio {max_stretch_ratio}.")
       cum.width += item.width
       cum.stretch += item.stretch
       cum.shrink += item.shrink
@@ -88,16 +88,67 @@ def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
 
   return survivors
 
+
+def print_line(ratio, line):
+  b = badness(ratio)
+  demerits = (1 + b) ** 2
+  text = ''.join(x.text for x in line)
+  print(f'{ratio:6.3f} {b:7} {demerits:8} ', text)
+  return demerits
+
+
+def show_results(items, line_width, breaks) -> List[Tuple[float, List]]:
+  lines = []
+  line = []
+  width = 0
+  stretch = 0
+  shrink = 0
+  total_demerits = 0
+  print(' ratio badness demerits  text')
+  print(' ----- ------- --------  ----')
+  for i, it in enumerate(items):
+    if i in breaks:
+      ratio = get_ratio(line_width, width, stretch, shrink)
+      demerits = print_line(ratio, line)
+      total_demerits += demerits
+      lines.append((ratio, line))
+
+      line = []
+      width = 0
+      stretch = 0
+      shrink = 0
+      continue
+
+    if isinstance(it, Box):
+      line.append(it)
+      width += it.width
+    elif isinstance(it, Glue):
+      line.append(it)
+      width += it.width
+      stretch += it.stretch
+      shrink += it.shrink
+    else:
+      assert False and "Unknown item"
+
+  # remaining
+  stretch += math.inf
+  ratio = get_ratio(line_width, width, stretch, shrink)
+  demerits = print_line(ratio, line)
+  total_demerits += demerits
+  lines.append((ratio, line))
+  print('-----')
+  print('Total demerits', total_demerits)
+  return lines
+
 if __name__ == "__main__":
     from sample import get_sample_paragraph
 
     items = get_sample_paragraph()
     print("Items:", len(items))
 
-    TRACE = True
-    common.LINE_PENALTY = 1
+    TRACE = False
     line_width = 500
-    breaks = line_break(items, line_width)
+    breaks = line_break(items, line_width, 1)
     print("Breaks:", breaks)
 
     show_results(items, line_width, breaks)

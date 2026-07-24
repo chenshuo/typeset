@@ -5,7 +5,7 @@ CSLI Lecture Notes 78, 1999.
 """
 
 import math
-from common import Box, Glue
+from common import Box, Glue, Penalty
 
 SAMPLE_TEXT = """In olden times when wishing still helped one, there lived a king
  whose daughters were all beautiful; and the youngest was so beautiful
@@ -18,7 +18,21 @@ SAMPLE_TEXT = """In olden times when wishing still helped one, there lived a kin
  her favorite plaything."""
 
 
-def get_sample_paragraph():
+hyphenation = {
+  "astonished": ["aston", "ished"],
+  "forest": ["for", "est"],
+  "beautiful": ["beau", "ti", "ful"],
+  "beautiful;": ["beau", "ti", "ful;"],
+  "fountain": ["foun", "tain"],
+  "fountain;": ["foun", "tain;"],
+  "favorite": ["favor", "ite"],
+  "daughter": ["daugh", "ter"],
+  "daughter's": ["daugh", "ter's"],
+  "plaything": ["play", "thing"],
+  "plaything.": ["play", "thing."],
+}
+
+def get_sample_paragraph(hyphenate=False):
 
   # Sample font metrics from Knuth & Plass 1981 paper.
   letter_widths = {'C': 13, 'I': 6, '-': 6}
@@ -35,7 +49,7 @@ def get_sample_paragraph():
     '.': Glue(8, 6, 1),
   }
 
-  items = [Box(18)]  # indent of first line by 1 em
+  items = [Box(18, "  ")]  # indent of first line by 1 em
 
   width = 0
   word = ""
@@ -47,7 +61,16 @@ def get_sample_paragraph():
 
     if ch in glue_types and width > 0:
       # print(f'{width:2} {word:10}', glue_types[ch])
-      items.append(Box(width, word))
+      if hyphenate and word in hyphenation:
+        for part in hyphenation[word][:-1]:
+          part_width = sum(letter_widths[c] for c in part)
+          items.append(Box(part_width, part))
+          items.append(Penalty(50, letter_widths['-'], '-'))  # hyphen penalty
+        part = hyphenation[word][-1]
+        part_width = sum(letter_widths[c] for c in part)
+        items.append(Box(part_width, part))
+      else:
+        items.append(Box(width, word))
       items.append(glue_types[ch])
       width = 0
       word = ""
