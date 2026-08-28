@@ -102,7 +102,14 @@ def render(font, size, lines, line_width, output):
     img_width = int(left_margin + line_width + right_margin)
     img_height = int((len(lines) + 1) * line_height)
 
-    surface = cairo.ImageSurface(cairo.FORMAT_RGB24, img_width, img_height)
+    ext = os.path.splitext(output)[1].lower()
+    if ext == ".pdf":
+        surface = cairo.PDFSurface(output, img_width, img_height)
+    elif ext == ".png":
+        surface = cairo.ImageSurface(cairo.FORMAT_RGB24, img_width, img_height)
+    else:
+        raise ValueError(f"Unsupported output format: '{ext}' (expected .png or .pdf)")
+
     cr = cairo.Context(surface)
     cr.set_source_rgb(1, 1, 1)
     cr.paint()
@@ -132,8 +139,12 @@ def render(font, size, lines, line_width, output):
     # print(datetime.now() - start)
 
     _libcairo.cairo_font_face_destroy(ff_ptr)
-    surface.write_to_png(output)
-    print(f"Saved PNG to: {output} ({img_width}x{img_height} px)\n")
+    if ext == ".pdf":
+        surface.finish()
+        print(f"Saved PDF to: {output} ({img_width}x{img_height} px)\n")
+    else:
+        surface.write_to_png(output)
+        print(f"Saved PNG to: {output} ({img_width}x{img_height} px)\n")
 
 def main():
     ap = argparse.ArgumentParser(description="Render a paragraph using the minimal version of Knuth-Plass line-breaking algorithm.")
@@ -143,7 +154,7 @@ def main():
     ap.add_argument("--font_index", type=int, default=0, help="Font index of TTC font")
     ap.add_argument("--size", type=float, default=24.0, help="Font size in px (default: 24)")
     ap.add_argument("--text_width", type=float, default=29.0, help="Text width in em (default: 29)")
-    ap.add_argument("--output", default="output.png", help="Output PNG path (default: output.png)")
+    ap.add_argument("--output", default="output.png", help="Output file path (PNG or PDF, default: output.png)")
     args = ap.parse_args()
 
     if not os.path.exists(args.font):
