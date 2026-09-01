@@ -90,3 +90,23 @@ def render(font, size, lines, line_width, output):
     else:
         surface.write_to_png(output)
         print(f"Saved PNG to: {output} ({img_width}x{img_height} px)\n")
+
+if __name__ == '__main__':
+    font = 'fonts/NotoSerifCJK-Regular.ttc'
+    size = 24
+    ft_face = freetype.Face(font, index=2)
+    text = "《论语》子曰：“三人行，必有我师焉。择其善者而从之，其不善者而改之。”"
+    glyphs = []
+    x = 0
+    y = 0
+    for ch in text:
+        glyph_index = ft_face.get_char_index(ch)
+        # print(ch, glyph_index)
+        glyphs.append((glyph_index, x, y))
+        x += size
+    box1 = Box(0, text, glyphs)
+    box2 = Box(size, '—', [(ft_face.get_char_index('—'), 0, -size//2)])
+    line2 = [box2] * len(text)
+    lines = [(0.0, (box1, )), (0.0, line2)]
+    line_width = size * len(text)
+    render(font, size, lines, line_width, 'output.pdf')
