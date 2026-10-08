@@ -147,6 +147,7 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio):
 
 
 def show_results(items, line_width, breaks):
+  lines = []
   print(' ratio badness demerits  text')
   print(' ----- ------- --------  ----')
   total_demerits = 0
@@ -157,8 +158,10 @@ def show_results(items, line_width, breaks):
     text += items[b.end].text
     total_demerits += b.demerits
     print(f'{ratio:6.3f} {bad:7} {b.demerits:8} ', text)
+    lines.append((ratio, items[b.start:b.end]))
   print('-----')
   print('Total demerits', total_demerits)
+  return lines
 
 
 if __name__ == "__main__":

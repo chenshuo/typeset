@@ -38,8 +38,8 @@ def _ft_face_ptr(ft_face: freetype.Face) -> int:
     return ctypes.cast(ft_face._FT_Face, ctypes.c_void_p).value
 
 
-def render(font, size, lines, line_width, output):
-    ft_face = freetype.Face(font)
+def render(font, size, lines, line_width, output, font_index=0):
+    ft_face = freetype.Face(font, font_index)
     ft_face.set_char_size(int(size * FREETYPE_SCALE), 0, 72, 72)
     left_margin = size
     right_margin = size
