@@ -30,6 +30,7 @@ Glue.INF = Glue(0, math.inf, 0)
 INF_BAD = 10000
 INF_PENALTY = 10000
 EJECT_PENALTY = -10000
+HYPHEN_PENALTY = 50
 
 @dataclass
 class Penalty:
@@ -65,5 +66,3 @@ def badness(ratio: float) -> int:
 
   # not using round() because Python3's round-half-to-even
   return int(100 * (abs(ratio) ** 3) + 0.5)
-
-

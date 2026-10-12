@@ -7,6 +7,7 @@ from datetime import datetime
 import uharfbuzz as hb
 
 from common import Box, Glue
+from util import get_box, get_space_glue
 from minimal import line_break, show_results
 from render_lib import DEFAULT_FONT, FREETYPE_SCALE, render
 from sample import SAMPLE_TEXT
@@ -21,37 +22,13 @@ def get_items(font_file, size, text):
 
     load = datetime.now()
     # print(load - start)
+    space_glue = get_space_glue(font)
+    print(f'space_glue:', space_glue)
     print(f'size: {size}px')
-    items = [Box(size * 2)]  # 2em
-
-    space = hb.Buffer()
-    space.add_str(' ')
-    space.guess_segment_properties()
-    hb.shape(font, space)
-    space_width = space.glyph_positions[0].x_advance / FREETYPE_SCALE
-    print(f'space_width: {space_width}+{space_width/2}-{space_width/3:.3f} px')
-    space_glue = Glue(space_width, space_width / 2, space_width / 3)
+    items = [Box(size * 2, '  ')]  # 2em
 
     for word in text.split():
-        buf = hb.Buffer()
-        buf.add_str(word)
-        buf.guess_segment_properties()
-        features = {"kern": True, "liga": True}
-        hb.shape(font, buf, features)
-
-        glyphs = []
-        pos_x = 0.0
-        for info, pos in zip(buf.glyph_infos, buf.glyph_positions):
-            glyphs.append((
-                info.codepoint,
-                pos_x + pos.x_offset / FREETYPE_SCALE,
-                pos.y_offset / FREETYPE_SCALE
-            ))
-            pos_x += pos.x_advance / FREETYPE_SCALE
-
-        # width = sum(pos.x_advance for pos in buf.glyph_positions) / FREETYPE_SCALE
-        box = Box(pos_x, word)
-        box.glyphs = glyphs
+        box = get_box(word, font)
 
         items.append(box)
         items.append(space_glue)
@@ -60,12 +37,13 @@ def get_items(font_file, size, text):
     # print(datetime.now() - load)
     return items
 
+
 def main():
     ap = argparse.ArgumentParser(description="Render a paragraph using the minimal version of Knuth-Plass line-breaking algorithm.")
     ap.add_argument("text", nargs="?", default="", help="The text to render")
     # ap.add_argument("-hb", action="store_true", help="Enable HarfBuzz text-shaping (handles kerning/ligatures)")
     ap.add_argument("--font", default=DEFAULT_FONT, help="Path to OTF/TTF/TTC font file")
-    ap.add_argument("--font_index", type=int, default=0, help="Font index of TTC font")
+    ap.add_argument("--font_index", type=int, default=0, help="Font index of TTC font (default: 0)")
     ap.add_argument("--size", type=float, default=24.0, help="Font size in px (default: 24)")
     ap.add_argument("--text_width", type=float, default=29.0, help="Text width in em (default: 29)")
     ap.add_argument("--output", default="output.png", help="Output file path (PNG or PDF, default: output.png)")

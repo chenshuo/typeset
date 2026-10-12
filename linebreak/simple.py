@@ -99,9 +99,11 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio):
   best_breakpoint = None
   survivors = []
   item = items[i]
+  hyphen_width = 0
+  if isinstance(item, Penalty):
+      hyphen_width = item.width
+      item = Glue.ZERO
   for a in active:
-    hyphen_width = item.width if isinstance(item, Penalty) else 0
-
     ratio = get_ratio(line_width,
                       cum.width - a.total_width + hyphen_width,
                       cum.stretch - a.total_stretch,
@@ -129,8 +131,6 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio):
                 end = Box(0, '$')
             print('%10s  %10s  %8d' % (start.text, end.text, demerits))
 
-        if isinstance(item, Penalty):
-          item = Glue.ZERO
         s = Breakpoint(i, a.line + 1, cum.width + item.width,
                        cum.stretch + item.stretch,
                        cum.shrink + item.shrink,
@@ -158,7 +158,12 @@ def show_results(items, line_width, breaks):
     text += items[b.end].text
     total_demerits += b.demerits
     print(f'{ratio:6.3f} {bad:7} {b.demerits:8} ', text)
-    lines.append((ratio, items[b.start:b.end]))
+    if isinstance(items[b.end], Glue):
+        lines.append((ratio, items[b.start:b.end]))
+    else:
+        assert isinstance(items[b.end], Penalty)
+        # include hyphen
+        lines.append((ratio, items[b.start:b.end+1]))
   print('-----')
   print('Total demerits', total_demerits)
   return lines

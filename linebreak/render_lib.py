@@ -3,7 +3,7 @@ import ctypes
 import cairo
 import freetype
 from datetime import datetime
-from common import Box, Glue
+from common import Box, Glue, Penalty
 
 LINE_SKIP = 1.4  # multiplier of font size for baseline vertical distance
 FREETYPE_SCALE = 64
@@ -70,6 +70,11 @@ def render(font, size, lines, line_width, output, font_index=0):
     pos_y = line_height + size * (LINE_SKIP - 1.0)
     for ratio, line in lines:
         pos_x = left_margin
+        last_item = line[-1]
+        if isinstance(last_item, Penalty):
+            if last_item.text:  # Hyphen
+                glyph = (ft_face.get_char_index(last_item.text[0]), 0, 0)
+                line[-1] = Box(last_item.width, last_item.text, [glyph, ])
         for it in line:
             if isinstance(it, Box):
                 if it.glyphs:
@@ -79,7 +84,7 @@ def render(font, size, lines, line_width, output, font_index=0):
             elif isinstance(it, Glue):
                 pos_x += it.get_width(ratio)
         pos_y += line_height
-        # print(pos_x - left_margin)
+        # print('%.2f' % (pos_x - left_margin))
 
     # print(datetime.now() - start)
 
