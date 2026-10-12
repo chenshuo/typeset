@@ -7,7 +7,7 @@ from common import Box, Glue, Penalty
 
 LINE_SKIP = 1.4  # multiplier of font size for baseline vertical distance
 FREETYPE_SCALE = 64
-DEFAULT_FONT = "fonts/LinLibertine_R.otf"
+DEFAULT_FONT = "/usr/share/texmf/fonts/opentype/public/lm/lmroman10-regular.otf"
 
 _libcairo = ctypes.CDLL("libcairo.so.2")
 _libcairo.cairo_ft_font_face_create_for_ft_face.restype = ctypes.c_void_p

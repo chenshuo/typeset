@@ -40,7 +40,7 @@ def get_items(font_file, size, hyphen_dict, text):
     space_glue = get_space_glue(font)
     print(f'space:', space_glue)
     print(f'size: {size}px')
-    items = [Box(size * 2, '  ')]  # 2em
+    items = [Box(size * 1, '  ')]  # 1em
 
     for word in text.split():
         if hyphens := may_hyphenate(hyphen_dict, word):
@@ -69,8 +69,8 @@ def main():
     # ap.add_argument("-hb", action="store_true", help="Enable HarfBuzz text-shaping (handles kerning/ligatures)")
     ap.add_argument("--font", default=DEFAULT_FONT, help="Path to OTF/TTF/TTC font file")
     ap.add_argument("--font_index", type=int, default=0, help="Font index of TTC font (default: 0)")
-    ap.add_argument("--size", type=float, default=18.0, help="Font size in px (default: 18)")
-    ap.add_argument("--text_width", type=float, default=27.0, help="Text width in em (default: 27)")
+    ap.add_argument("--size", type=float, default=12.0, help="Font size in px (default: 12)")
+    ap.add_argument("--text_width", type=float, default=21.0, help="Text width in em (default: 21)")
     ap.add_argument("--hyphen", action=argparse.BooleanOptionalAction, default=True, help="Enable hyphenation (default: true)")
     ap.add_argument("--output", default="output.pdf", help="Output file path (PNG or PDF, default: output.pdf)")
     args = ap.parse_args()
@@ -98,6 +98,8 @@ def main():
                 cum_width += item.width
             print('%3d  %12s  %6.3f  %8.3f' % (i, item.text, item.width, cum_width))
 
+    # simple.KP81_PENALTY = True
+    # simple.LINE_PENALTY = 1
     breaks = line_break(items, line_width, 1.0)
     # print(f'breaks: {len(breaks)}', breaks)
 
