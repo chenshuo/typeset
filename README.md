@@ -1,8 +1,13 @@
 # 用 LaTeX 排版技术书籍
 
-## PDF下载
+## PDF 下载
 
-<http://code.google.com/p/chenshuo/downloads/detail?name=typeset.pdf>
+* [用 LaTeX 排版编程技术书籍的一些个人经验](typeset.pdf)
+* [汉字激光照排小史](wangxuan-history.pdf)
+    * 复刻 1979 年王选教授研制的华光I型汉字激光照排系统排出的[第一张 8 开报纸样张](wangxuan1979.pdf)
+* [TikZ 绘制中学几何题](tikz-notes.ipynb)
+
+***
 
 以下说明由网友 Frank Dai (https://github.com/soulmachine) 编写。
 

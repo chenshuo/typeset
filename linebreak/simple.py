@@ -1,4 +1,4 @@
-"""Plain implementation of Knuth-Plass line breaking algorithm.
+"""Simple implementation of Knuth-Plass line breaking algorithm.
 
 Box, Glue, and Penalty.  No double hyphen demerits, no fit classes.
 """
