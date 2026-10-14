@@ -110,7 +110,7 @@ if __name__ == '__main__':
         glyphs.append((glyph_index, x, y))
         x += size
     box1 = Box(0, text, glyphs)
-    box2 = Box(size, '—', [(ft_face.get_char_index('—'), 0, -size//2)])
+    box2 = Box(size, '—', [(ft_face.get_char_index('囗'), 0, -size//3)])
     line2 = [box2] * len(text)
     lines = [(0.0, (box1, )), (0.0, line2)]
     line_width = size * len(text)
