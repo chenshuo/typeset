@@ -77,3 +77,8 @@ def get_sample_paragraph(hyphenate=False):
       # if ch != ' ': print()
 
   return items
+
+if __name__ == '__main__':
+    items = get_sample_paragraph()
+    for i, item in enumerate(items):
+        print('%3d' % i, item)

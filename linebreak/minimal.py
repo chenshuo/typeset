@@ -78,7 +78,7 @@ def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
     if -1 <= ratio <= max_stretch_ratio:
         b = badness(ratio)
         demerits = (1 + b)**2
-        # print(items[i-1], demerits)
+        # print(a.position, i, '%8s %6.3f %3d %4d' % (items[i-1].text, ratio, b, demerits))
         s = Breakpoint(i, a.line + 1, cum.width + item.width,
                        cum.stretch + item.stretch,
                        cum.shrink + item.shrink,
