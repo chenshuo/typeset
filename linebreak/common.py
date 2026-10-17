@@ -20,7 +20,7 @@ class Glue:
   shrink: float
   text: str = ' '
 
-  def get_width(self, ratio):
+  def get_width(self, ratio: float) -> float:
     return self.width + ratio * (self.stretch if ratio >= 0 else self.shrink)
 
 Glue.ZERO = Glue(0, 0, 0)
@@ -66,5 +66,5 @@ def badness(ratio: float) -> int:
   if math.isnan(ratio) or ratio < -1.0:
     return INF_BAD
 
-  # not using round() because Python3's round-half-to-even
-  return int(100 * (abs(ratio) ** 3) + 0.5)
+  # Not using round() because Python3's round-half-to-even
+  return min(INF_BAD, int(100 * (abs(ratio) ** 3) + 0.5))

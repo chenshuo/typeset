@@ -52,6 +52,7 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
   best = min(active, key=lambda n: n.total_demerits)
   print('Best:', best.position, items[best.position-1], best.total_demerits)
 
+  # Back trace
   breaks = []
   while best:
     breaks.append(best.position)
@@ -76,15 +77,16 @@ def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
 
     # Only consider feasible breakpoints.
     if -1 <= ratio <= max_stretch_ratio:
-        b = badness(ratio)
-        demerits = (1 + b)**2
-        # print(a.position, i, '%8s %6.3f %3d %4d' % (items[i-1].text, ratio, b, demerits))
-        s = Breakpoint(i, a.line + 1, cum.width + item.width,
-                       cum.stretch + item.stretch,
-                       cum.shrink + item.shrink,
-                       a.total_demerits + demerits, a)
-        # TODO: only add Breakpoint with smallest total_demerits to survivors.
-        survivors.append(s)
+      b = badness(ratio)
+      demerits = (1 + b)**2
+      if TRACE:
+        print(a.position, i, '%8s %6.3f %3d %4d' % (items[i-1].text, ratio, b, demerits))
+      s = Breakpoint(i, a.line + 1, cum.width + item.width,
+                     cum.stretch + item.stretch,
+                     cum.shrink + item.shrink,
+                     a.total_demerits + demerits, a)
+      # TODO: only add Breakpoint with smallest total_demerits to survivors.
+      survivors.append(s)
 
   return survivors
 
