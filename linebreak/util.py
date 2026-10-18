@@ -4,11 +4,10 @@ from common import Box, Glue
 
 FREETYPE_SCALE = 64
 
-def get_box(word, hb_font):
+def get_box(word: str, hb_font, features={}) -> Box:
     buf = hb.Buffer()
     buf.add_str(word)
     buf.guess_segment_properties()
-    features = {"kern": True, "liga": True}
     hb.shape(hb_font, buf, features)
 
     glyphs = []
@@ -26,7 +25,7 @@ def get_box(word, hb_font):
     return box
 
 
-def get_space_glue(hb_font):
+def get_space_glue(hb_font) -> Glue:
     space_width = get_box(' ', hb_font).width
     space_glue = Glue(space_width, space_width / 2, space_width / 3)
     return space_glue

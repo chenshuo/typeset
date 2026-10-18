@@ -72,7 +72,7 @@ def main():
     ap.add_argument("--size", type=float, default=12.0, help="Font size in px (default: 12)")
     ap.add_argument("--text_width", type=float, default=21.0, help="Text width in em (default: 21)")
     ap.add_argument("--hyphen", action=argparse.BooleanOptionalAction, default=True, help="Enable hyphenation (default: true)")
-    ap.add_argument("--trace", action="store_true", default=True, help="Enable tracing (default: false)")
+    ap.add_argument("--trace", action="store_true", default=False, help="Enable tracing (default: false)")
     ap.add_argument("--output", default="output.pdf", help="Output file path (PNG or PDF, default: output.pdf)")
     args = ap.parse_args()
 
