@@ -2,8 +2,10 @@ import os
 import ctypes
 import cairo
 import freetype
+import uharfbuzz as hb
 from datetime import datetime
 from common import Box, Glue, Penalty
+from util import get_box
 
 LINE_SKIP = 1.4  # multiplier of font size for baseline vertical distance
 FREETYPE_SCALE = 64
@@ -97,10 +99,14 @@ def render(font, size, lines, line_width, output, font_index=0):
         print(f"Saved PNG to: {output} ({img_width}x{img_height} px)\n")
 
 if __name__ == '__main__':
-    font = 'fonts/NotoSerifCJK-Regular.ttc'
-    size = 24
-    ft_face = freetype.Face(font, index=2)
-    text = "《论语》子曰：“三人行，必有我师焉。择其善者而从之，其不善者而改之。”"
+    font = 'fonts/NotoSong.ttc'
+    font_index = 2  # Sim. Chinese
+    size = 12
+    ft_face = freetype.Face(font, index=font_index)
+    text = "《论语》子曰：“三人行，必有我师焉。”"
+    box0 = Box(size, '—', [(ft_face.get_char_index('—'), 0, 0)])
+    line0 = [box0] * len(text)
+
     glyphs = []
     x = 0
     y = 0
@@ -110,8 +116,21 @@ if __name__ == '__main__':
         glyphs.append((glyph_index, x, y))
         x += size
     box1 = Box(0, text, glyphs)
-    box2 = Box(size, '—', [(ft_face.get_char_index('囗'), 0, -size//3)])
-    line2 = [box2] * len(text)
-    lines = [(0.0, (box1, )), (0.0, line2)]
+
+    blob = hb.Blob.from_file_path(font)
+    hb_face = hb.Face(blob, index=font_index)
+    hb_font = hb.Font(hb_face)
+    hb_font.scale = (int(size * FREETYPE_SCALE), int(size * FREETYPE_SCALE))
+    box2 = get_box(text, hb_font)
+    box3 = get_box(text, hb_font, features={"chws": True})
+    box4 = get_box(text, hb_font, features={"halt": True})
+
+    ratio = 0.0
+    lines = [(ratio, (box1, )),
+             (ratio, line0),
+             (ratio, (box2, )),
+             (ratio, (box3, )),
+             (ratio, (box4, )),
+             ]
     line_width = size * len(text)
-    render(font, size, lines, line_width, 'output.pdf')
+    render(font, size, lines, line_width, 'output1.pdf', font_index=font_index)
