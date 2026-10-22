@@ -334,7 +334,7 @@ class Main(QMainWindow):
         self.indent_spin = QSpinBox(); self.indent_spin.setRange(0, 4); self.indent_spin.setValue(2)
         self.algo_combo = QComboBox(); self.algo_combo.addItems(['Knuth-Plass (minimal.py)', '贪心 (first fit)'])
         self.rho_spin = QDoubleSpinBox(); self.rho_spin.setRange(0.1, 20); self.rho_spin.setSingleStep(0.1); self.rho_spin.setValue(1.0)
-        self.runt_check = QCheckBox('段末禁止单字成行 (U+2060 WJ)')
+        self.runt_check = QCheckBox('段末禁止单字成行')
         fl.addRow('每行字数', self.chars_spin)
         fl.addRow('字号', self.size_spin)
         fl.addRow('段首缩进(字)', self.indent_spin)
@@ -491,7 +491,7 @@ class Main(QMainWindow):
             b = badness(ratio)
             d = (1 + b) ** 2
             total += d
-            text = ''.join(x.text for x in line).replace('\u2060', '')
+            text = ''.join(x.text for x in line)
             for col, val in enumerate([str(i + 1), f'{ratio:+.3f}', str(b), str(d), text]):
                 cell = QTableWidgetItem(val)
                 if col < 4:
@@ -506,7 +506,7 @@ class Main(QMainWindow):
 
 def fmt_item(it, size):
     if isinstance(it, Box):
-        return f"Box(width={it.width / size:5.2f}em, '{it.text.replace(chr(0x2060), '')}')"
+        return f"Box(width={it.width / size:5.2f}em, '{it.text}')"
     return f'Glue(width={it.width / size:.2f}em, stretch={it.stretch / size:.3f}em, shrink={it.shrink / size:.5f}em)'
 
 
