@@ -54,7 +54,7 @@ STRATEGY_NAMES = [
     '不处理：标点始终占一个字',
     '行末半宽：标点拆成半宽 box + glue(½em)',
     '标点悬挂：box 不含标点宽度 + glue(1em)',
-    '上下文：box 内 chws，box 尾标点半宽，glue 看下一 box 开头',
+    '上下文：box 尾标点半宽，glue 看下一 box 开头',
 ]
 STRATEGY_TIPS = [
     '汉字连同其后标点放入同一 box，宽度一律为整字，只有汉字间的 glue 可伸缩。',
@@ -62,7 +62,7 @@ STRATEGY_TIPS = [
     '行末断点处 glue 被丢弃，逗号只占半个字（国标 5.1.10）。',
     'box 仍宽 1em，逗号墨迹画在 box 右边界之外，glue 自然宽度 1em；'
     '行末 glue 丢弃，逗号挂到版心之外。',
-    'box 内部打开 OpenType chws 压缩连用标点；box 末尾标点压成半宽，'
+    'box 末尾标点压成半宽，'
     '下一 box 若以前引号等左空白标点开头则只用普通 glue，否则用标点 glue。',
 ]
 
@@ -113,22 +113,21 @@ def build_items(p: Params) -> List:
 
     units = [u for u in line_break_units(p.text) if u.strip()]
     if p.no_runt and len(units) >= 2:
-        # Glue the last two units together with WORD JOINER (U+2060).
-        units = units[:-2] + [units[-2] + '\u2060' + units[-1]]
+        # Glue the last two units together
+        units = units[:-2] + [units[-2] + units[-1]]
 
-    features = {'chws': True} if p.strategy == P_CONTEXT else {}
     for i, seg in enumerate(units):
-        box = get_box(seg, hb_font, features)
+        box = get_box(seg, hb_font)
         last = seg[-1]
         nxt = units[i + 1][0] if i + 1 < len(units) else ''
         glue = cjk_glue
-        if p.strategy == P_HALF and last in STOP_PUNCTS:
+        if p.strategy == P_HALF and last in (STOP_PUNCTS | CLOSE_PUNCTS):
             box.width -= em(0.5)
             glue = punct_glue
         elif p.strategy == P_HANG and last in STOP_PUNCTS:
             box.width -= em(1.0)
             glue = hang_glue
-        elif p.strategy == P_CONTEXT and last in STOP_PUNCTS:
+        elif p.strategy == P_CONTEXT and last in (STOP_PUNCTS | CLOSE_PUNCTS):
             box.width -= em(0.5)
             glue = cjk_glue if nxt in OPEN_PUNCTS else punct_glue
         items.append(box)
