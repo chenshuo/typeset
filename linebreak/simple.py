@@ -35,7 +35,12 @@ KP81_PENALTY = False
 LINE_PENALTY = 10
 
 def line_break(items, line_width, max_stretch_ratio=1.0) -> List[LineBreakResult]:
-  assert isinstance(items[-1], Penalty) and items[-1].value == EJECT_PENALTY
+  # The paragraph must end with infinitely stretchable glue (so the last line
+  # is always feasible, ratio == 0) followed by the eject penalty.
+  assert (len(items) >= 2
+          and isinstance(items[-2], Glue) and math.isinf(items[-2].stretch)
+          and isinstance(items[-1], Penalty) and items[-1].value == EJECT_PENALTY), \
+      "Paragraph must end with Glue(0, inf, 0) and Penalty.EJECT."
   active: List[Breakpoint] = [Breakpoint(-1, 0, 0, 0, 0, 0, 0.0, 0)]
 
   # Cumulative width, stretch and shrink of items before the current position.
@@ -103,6 +108,9 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio):
   if isinstance(item, Penalty):
       hyphen_width = item.width
       item = Glue.ZERO
+  # A forced break (eject) deactivates every active node, so the line must be
+  # set even if no candidate is feasible (cf. TeX's artificial_demerits).
+  forced = penalty <= EJECT_PENALTY
   for a in active:
     ratio = get_ratio(line_width,
                       cum.width - a.total_width + hyphen_width,
@@ -110,13 +118,25 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio):
                       cum.shrink - a.total_shrink)
 
     # Cannot say 'if ratio >= -1', because ratio could be NaN.
-    if (not ratio < -1) and penalty > EJECT_PENALTY:
+    if (not ratio < -1) and not forced:
       survivors.append(a)
 
-    # Only consider feasible breakpoints.
-    # FIXME: how about eject penalty?
-    if -1 <= ratio <= max_stretch_ratio:
-        b = badness(ratio)
+    # Only consider feasible breakpoints, except at a forced break where
+    # infeasible lines are accepted with maximal badness.
+    #
+    # Using INF_BAD for any infeasible line (overfull, too loose, or NaN) is a
+    # simplification of TeX82 (tex.web §851-855).  There, an infeasible line
+    # at a forced break is normally just deactivated and dropped; only when
+    # this would empty the active list on the final pass is the last remaining
+    # node kept, with "artificial_demerits", i.e. demerits 0 (not (l+b)^2).
+    # Since the active list is ordered by position, TeX thus falls back to the
+    # latest (shortest) possible last line, whereas here every active node is
+    # a candidate and the one with the lowest total demerits wins.  As a forced
+    # break leaves exactly one active node either way, this choice affects only
+    # which line is picked and the reported totals, never later comparisons.
+    feasible = -1 <= ratio <= max_stretch_ratio
+    if feasible or forced:
+        b = badness(ratio) if feasible else INF_BAD
         demerits = (LINE_PENALTY + b)**2
         if penalty >= 0:
           demerits += penalty ** 2
@@ -131,6 +151,11 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio):
                 end = Box(0, '$')
             print('%10s  %10s  %8d' % (start.text, end.text, demerits))
 
+        # The new line starts right after the break item.  Note that TeX82
+        # discards all discardable items (glue, penalties, kerns, math) at the
+        # beginning of a line, up to the first box; here only the break item
+        # itself is consumed, so any further glue after the break is counted
+        # in the next line's width.
         s = Breakpoint(i, a.line + 1, cum.width + item.width,
                        cum.stretch + item.stretch,
                        cum.shrink + item.shrink,
