@@ -34,10 +34,14 @@ HYPHEN_PENALTY = 50
 
 @dataclass
 class Penalty:
-  """."""
+  """Potential break point with cost `value`; `width` is added only if the line breaks here.
+
+  `value >= INF_PENALTY` forbids a break, `value <= EJECT_PENALTY` forces one.
+  """
 
   value: int
   width: float = 0.0
+  is_hyphen: bool = False
   text: str = ''
 
 Penalty.NO_BREAK = Penalty(INF_PENALTY)
