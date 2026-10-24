@@ -34,7 +34,10 @@ TRACE = False
 KP81_PENALTY = False
 LINE_PENALTY = 10
 
-def line_break(items, line_width, max_stretch_ratio=1.0) -> List[LineBreakResult]:
+def line_break(items, line_width, max_stretch_ratio=1.0,
+               final_pass=False) -> List[LineBreakResult]:
+  # final_pass: like TeX's final pass, force an overfull line instead of
+  # raising an error when the active list is about to become empty.
   # The paragraph must end with infinitely stretchable glue (so the last line
   # is always feasible, ratio == 0) followed by the eject penalty.
   assert (len(items) >= 2
@@ -59,7 +62,8 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[LineBreakResult
         penalty = item.value
 
     if is_break:
-      active = _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio)
+      active = _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio,
+                          final_pass)
       if not active:
         raise RuntimeError(f"No feasible breakpoints found at {i} with line width "
                            f"{line_width} and max stretch ratio {max_stretch_ratio}.")
@@ -98,7 +102,8 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[LineBreakResult
   return breaks
 
 
-def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio):
+def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio,
+               final_pass=False):
   AWFUL_BAD = 0x3fff_ffff
   min_demerits = AWFUL_BAD
   best_breakpoint = None
@@ -167,6 +172,23 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio):
 
   if min_demerits < AWFUL_BAD:
     survivors.append(best_breakpoint)
+
+  # On the final pass, never lose all active nodes (tex.web §854): break
+  # here anyway from the last active node, giving an overfull line with
+  # "artificial_demerits", i.e. demerits 0.  The active list is ordered by
+  # position, so this is the latest possible start, the least overfull line.
+  if final_pass and not survivors:
+    a = active[-1]
+    ratio = get_ratio(line_width,
+                      cum.width - a.total_width + hyphen_width,
+                      cum.stretch - a.total_stretch,
+                      cum.shrink - a.total_shrink)
+    if TRACE:
+      print('Overfull line forced at', i, 'ratio %.3f' % ratio)
+    survivors.append(Breakpoint(i, a.line + 1, cum.width + item.width,
+                                cum.stretch + item.stretch,
+                                cum.shrink + item.shrink,
+                                a.total_demerits, ratio, 0, a))
 
   return survivors
 
