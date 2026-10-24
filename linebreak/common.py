@@ -41,8 +41,10 @@ class Penalty:
 
   value: int
   width: float = 0.0
-  is_hyphen: bool = False
   text: str = ''
+
+  def is_hyphen(self) -> bool:
+    return self.width > 0 and self.text == '-'
 
 Penalty.NO_BREAK = Penalty(INF_PENALTY)
 Penalty.EJECT = Penalty(EJECT_PENALTY)
