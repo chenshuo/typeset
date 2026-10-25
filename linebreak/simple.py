@@ -13,9 +13,9 @@ from typing import List, Optional, Tuple
 class Breakpoint:
   position: int
   line: int
-  total_width: float
-  total_stretch: float
-  total_shrink: float
+  cum_width: float
+  cum_stretch: float
+  cum_shrink: float
   total_demerits: int
   ratio: float
   demerits: int
@@ -86,7 +86,8 @@ def line_break(items, line_width, max_stretch_ratio=1.0,
   assert active
   assert all(n.position == len(items) - 1 for n in active)
   best = min(active, key=lambda n: n.total_demerits)
-  print('Best:', best.position, items[best.position], best.total_demerits)
+  if TRACE:
+    print('Best:', best.position, items[best.position], best.total_demerits)
 
   breaks = []
   while best.previous:
@@ -103,8 +104,7 @@ def line_break(items, line_width, max_stretch_ratio=1.0,
 
 def _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio,
                final_pass=False):
-  AWFUL_BAD = 0x3fff_ffff
-  min_demerits = AWFUL_BAD
+  min_demerits = math.inf  # AWFUL_BAD
   best_breakpoint = None
   survivors = []
   hyphen_width = 0
@@ -116,9 +116,9 @@ def _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio,
   forced = penalty <= EJECT_PENALTY
   for a in active:
     r = ratio(line_width,
-              cum.width - a.total_width + hyphen_width,
-              cum.stretch - a.total_stretch,
-              cum.shrink - a.total_shrink)
+              total_width=cum.width - a.cum_width + hyphen_width,
+              total_stretch=cum.stretch - a.cum_stretch,
+              total_shrink=cum.shrink - a.cum_shrink)
 
     # Cannot say 'if r >= -1', because ratio could be NaN.
     if (not r < -1) and not forced:
@@ -147,16 +147,17 @@ def _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio,
       # beginning of a line, up to the first box; here only the break item
       # itself is consumed, so any further glue after the break is counted
       # in the next line's width.
-      s = Breakpoint(i, a.line + 1, cum.width + item.width,
-                     cum.stretch + item.stretch,
-                     cum.shrink + item.shrink,
-                     a.total_demerits + d,
-                     r, d, a)
+      s = Breakpoint(position=i, line=a.line + 1,
+                     cum_width=cum.width + item.width,
+                     cum_stretch=cum.stretch + item.stretch,
+                     cum_shrink=cum.shrink + item.shrink,
+                     total_demerits=a.total_demerits + d,
+                     ratio=r, demerits=d, previous=a)
       if s.total_demerits < min_demerits:
         min_demerits = s.total_demerits
         best_breakpoint = s
 
-  if min_demerits < AWFUL_BAD:
+  if best_breakpoint is not None:
     survivors.append(best_breakpoint)
 
   # On the final pass, never lose all active nodes (tex.web §854): break
@@ -166,15 +167,17 @@ def _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio,
   if final_pass and not survivors:
     a = active[-1]
     r = ratio(line_width,
-                      cum.width - a.total_width + hyphen_width,
-                      cum.stretch - a.total_stretch,
-                      cum.shrink - a.total_shrink)
+              total_width=cum.width - a.cum_width + hyphen_width,
+              total_stretch=cum.stretch - a.cum_stretch,
+              total_shrink=cum.shrink - a.cum_shrink)
     if TRACE:
       print('Overfull line forced at', i, 'ratio %.3f' % r)
-    survivors.append(Breakpoint(i, a.line + 1, cum.width + item.width,
-                                cum.stretch + item.stretch,
-                                cum.shrink + item.shrink,
-                                a.total_demerits, r, 0, a))
+    survivors.append(Breakpoint(position=i, line=a.line + 1,
+                                cum_width=cum.width + item.width,
+                                cum_stretch=cum.stretch + item.stretch,
+                                cum_shrink=cum.shrink + item.shrink,
+                                total_demerits=a.total_demerits,
+                                ratio=r, demerits=0, previous=a))
 
   return survivors
 

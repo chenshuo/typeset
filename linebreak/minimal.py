@@ -13,9 +13,9 @@ from typing import List, Optional, Tuple
 class Breakpoint:
   position: int
   line: int
-  total_width: float
-  total_stretch: float
-  total_shrink: float
+  cum_width: float
+  cum_stretch: float
+  cum_shrink: float
   total_demerits: int
   previous: "Breakpoint" = None
 
@@ -41,7 +41,7 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
       cum.stretch += item.stretch
       cum.shrink += item.shrink
     else:
-      assert False and "Unknown item"
+      assert False, "Unknown item"
 
   if TRACE:
     print("Active:", len(active))
@@ -49,8 +49,14 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
       print('Active:', a.position, a.total_demerits, items[a.position-1].text)
 
   assert active
+  # BUG: the last line, from best.position to the end, is never checked for
+  # feasibility, nor are its demerits counted.  Since fewer lines mean fewer
+  # total demerits, this favors breaking less often and may leave the last
+  # line overfull, e.g. 5 words of Box(40) with Glue(10, 5, 3) in a line of 90
+  # gives "aaaa bbbb / cccc dddd eeee" (ratio -8.333) instead of 3 lines.
   best = min(active, key=lambda n: n.total_demerits)
-  print('Best:', best.position, items[best.position-1], best.total_demerits)
+  if TRACE:
+    print('Best:', best.position, items[best.position-1], best.total_demerits)
 
   # Back trace
   breaks = []
@@ -67,9 +73,9 @@ def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
   survivors = []
   for a in active:
     r = ratio(line_width,
-              cum.width - a.total_width,
-              cum.stretch - a.total_stretch,
-              cum.shrink - a.total_shrink)
+              total_width=cum.width - a.cum_width,
+              total_stretch=cum.stretch - a.cum_stretch,
+              total_shrink=cum.shrink - a.cum_shrink)
 
     # Cannot say 'if r >= -1', because ratio could be NaN.
     if not r < -1:
@@ -81,11 +87,16 @@ def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
       demerits = (1 + b)**2
       if TRACE:
         print(a.position, i, ' %6.3f %3d %4d' % (r, b, demerits))
-      s = Breakpoint(i, a.line + 1, cum.width + item.width,
-                     cum.stretch + item.stretch,
-                     cum.shrink + item.shrink,
-                     a.total_demerits + demerits, a)
+      s = Breakpoint(position=i, line=a.line + 1,
+                     cum_width=cum.width + item.width,
+                     cum_stretch=cum.stretch + item.stretch,
+                     cum_shrink=cum.shrink + item.shrink,
+                     total_demerits=a.total_demerits + demerits,
+                     previous=a)
       # TODO: only add Breakpoint with smallest total_demerits to survivors.
+      # Currently every feasible predecessor 'a' adds its own Breakpoint at
+      # position i, so the active list keeps one node per path rather than
+      # per position, and may grow exponentially with paragraph length.
       survivors.append(s)
 
   return survivors
@@ -130,7 +141,7 @@ def show_results(items, line_width, breaks) -> List[Tuple[float, List]]:
       stretch += it.stretch
       shrink += it.shrink
     else:
-      assert False and "Unknown item"
+      assert False, "Unknown item"
 
   # remaining
   stretch += math.inf
