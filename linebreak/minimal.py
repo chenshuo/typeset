@@ -1,6 +1,19 @@
 """Minimal implementation of Knuth-Plass line breaking algorithm.
 
 Only Box and Glue, no Penalty. No hyphenation.
+
+This file is for educational purpose, not for actual use.  It has two known
+drawbacks, see the BUG and TODO comments below:
+
+  1. The last line is never checked for feasibility, nor are its demerits
+     counted, so it may come out overfull.
+  2. The active list keeps one node per path instead of one per position,
+     so it may grow exponentially with paragraph length.
+
+For actual usage, prefer minimal_dp.py, which has the same Box/Glue model as
+a plain DP over an array and fixes both, or basic.py, which also supports
+Penalty.  minimal_dp.py is written in textbook DP form, so readers familiar
+with dynamic programming may find it easier to start there.
 """
 
 import common
