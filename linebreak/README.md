@@ -2,9 +2,7 @@
 
 Here are several simplified implementations of the Knuth-Plass line-breaking algorithm, as described in the Knuth-Plass 1981 paper:
 
-Donald E. Knuth, Michael F. Plass. "[Breaking
-paragraphs into lines](https://gwern.net/doc/design/typography/tex/1981-knuth.pdf)", _Software - Practice and
-Experience_, **11** (1981), 1119–1184.
+Donald E. Knuth, Michael F. Plass. "[Breaking paragraphs into lines](https://gwern.net/doc/design/typography/tex/1981-knuth.pdf)", _Software - Practice and Experience_, **11** (1981), 1119–1184.
 Reprinted with corrections as Chapter 3 of [_Digital Typography_](https://www-cs-faculty.stanford.edu/~knuth/dt.html) (Donald E. Knuth. CSLI Lecture Notes No. 78, 1999).
 
 Files
@@ -14,8 +12,9 @@ Files
    This is approximately equivalent to the stripped-down version from the appendix of Knuth-Plass 1981 paper, but without hyphenation.
     * `render_minimal.py` reproduces the result of Figure 4 (c) in Knuth-Plass 1981 paper.
     * `minimal_chinese_demo.py` demos Chinese punctuation width adjustments.
+    * `minimal_dp.py` is the same model as `minimal.py`, written as a textbook DP over an array.
 * `basic.py` implements a basic version of Knuth-Plass, supporting Box, Glue, and Penalty.
-   No double hyphen demerits, no fit classes.
+   No double hyphen demerits, no fit classes, no looseness, etc.
     *  `render_basic.py` reproduces the result of Figure 3 in Knuth-Plass 1981 paper.
 
 ![](minimal_chinese_demo.png)
