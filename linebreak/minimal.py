@@ -26,7 +26,7 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
   active: List[Breakpoint] = [Breakpoint(-1, 0, 0, 0, 0, 0)]
 
   # Cumulative width, stretch and shrink of items before the current position.
-  cum = Glue(0, 0, 0)
+  cum = Glue(0, 0, 0)  # Cannot say cum = Glue.ZERO, needs a new object
   for i, item in enumerate(items):
     if isinstance(item, Box):
       cum.width += item.width
