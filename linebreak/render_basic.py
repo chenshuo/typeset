@@ -10,8 +10,8 @@ import pyphen
 
 from common import Box, Glue, Penalty, HYPHEN_PENALTY
 from util import get_box, get_space_glue
-import simple
-from simple import line_break, show_results
+import basic
+from basic import line_break, show_results
 from render_lib import DEFAULT_FONT, FREETYPE_SCALE, render
 from sample import SAMPLE_TEXT
 
@@ -93,17 +93,17 @@ def main():
     print(f'items: {len(items)}')
 
     if args.trace:
-        simple.TRACE = True
+        basic.TRACE = True
 
-    if simple.TRACE:
+    if basic.TRACE:
         cum_width = 0
         for i, item in enumerate(items):
             if not isinstance(item, Penalty):
                 cum_width += item.width
             print('%3d  %12s  %6.3f  %8.3f' % (i, item.text, item.width, cum_width))
 
-    # simple.KP81_PENALTY = True
-    # simple.LINE_PENALTY = 1
+    # basic.KP81_PENALTY = True
+    # basic.LINE_PENALTY = 1
     breaks = line_break(items, line_width, 1.0)
     # print(f'breaks: {len(breaks)}', breaks)
 

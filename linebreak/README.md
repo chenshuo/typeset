@@ -14,9 +14,9 @@ Files
    This is approximately equivalent to the stripped-down version from the appendix of Knuth-Plass 1981 paper, but without hyphenation.
     * `render_minimal.py` reproduces the result of Figure 4 (c) in Knuth-Plass 1981 paper.
     * `minimal_chinese_demo.py` demos Chinese punctuation width adjustments.
-* `simple.py` implements a simple version of Knuth-Plass, supporting Box, Glue, and Penalty.
+* `basic.py` implements a basic version of Knuth-Plass, supporting Box, Glue, and Penalty.
    No double hyphen demerits, no fit classes.
-    *  `render_simple.py` reproduces the result of Figure 3 in Knuth-Plass 1981 paper.
+    *  `render_basic.py` reproduces the result of Figure 3 in Knuth-Plass 1981 paper.
 
 ![](minimal_chinese_demo.png)
 
