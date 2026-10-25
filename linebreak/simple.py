@@ -139,22 +139,22 @@ def _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio,
     # which line is picked and the reported totals, never later comparisons.
     feasible = -1 <= r <= max_stretch_ratio
     if feasible or forced:
-        b = badness(r) if feasible else INF_BAD
-        d = demerits(b, penalty)
+      b = badness(r) if feasible else INF_BAD
+      d = demerits(b, penalty)
 
-        # The new line starts right after the break item.  Note that TeX82
-        # discards all discardable items (glue, penalties, kerns, math) at the
-        # beginning of a line, up to the first box; here only the break item
-        # itself is consumed, so any further glue after the break is counted
-        # in the next line's width.
-        s = Breakpoint(i, a.line + 1, cum.width + item.width,
-                       cum.stretch + item.stretch,
-                       cum.shrink + item.shrink,
-                       a.total_demerits + d,
-                       r, d, a)
-        if s.total_demerits < min_demerits:
-          min_demerits = s.total_demerits
-          best_breakpoint = s
+      # The new line starts right after the break item.  Note that TeX82
+      # discards all discardable items (glue, penalties, kerns, math) at the
+      # beginning of a line, up to the first box; here only the break item
+      # itself is consumed, so any further glue after the break is counted
+      # in the next line's width.
+      s = Breakpoint(i, a.line + 1, cum.width + item.width,
+                     cum.stretch + item.stretch,
+                     cum.shrink + item.shrink,
+                     a.total_demerits + d,
+                     r, d, a)
+      if s.total_demerits < min_demerits:
+        min_demerits = s.total_demerits
+        best_breakpoint = s
 
   if min_demerits < AWFUL_BAD:
     survivors.append(best_breakpoint)

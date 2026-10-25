@@ -83,9 +83,9 @@ def demerits(badness, penalty) -> int:
   demerits = (LINE_PENALTY + badness)**2
 
   if penalty >= 0:
-    demerits += penalty ** 2
     if KP81_PENALTY:
-      demerits = (LINE_PENALTY + badness + penalty)**2
+      return (LINE_PENALTY + badness + penalty)**2
+    demerits += penalty ** 2
   elif penalty > EJECT_PENALTY:
     demerits -= penalty ** 2
 
