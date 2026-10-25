@@ -66,21 +66,21 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
 def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
   survivors = []
   for a in active:
-    ratio = get_ratio(line_width,
-                      cum.width - a.total_width,
-                      cum.stretch - a.total_stretch,
-                      cum.shrink - a.total_shrink)
+    r = ratio(line_width,
+              cum.width - a.total_width,
+              cum.stretch - a.total_stretch,
+              cum.shrink - a.total_shrink)
 
-    # Cannot say 'if ratio >= -1', because ratio could be NaN.
-    if not ratio < -1:
+    # Cannot say 'if r >= -1', because ratio could be NaN.
+    if not r < -1:
       survivors.append(a)
 
     # Only consider feasible breakpoints.
-    if -1 <= ratio <= max_stretch_ratio:
-      b = badness(ratio)
+    if -1 <= r <= max_stretch_ratio:
+      b = badness(r)
       demerits = (1 + b)**2
       if TRACE:
-        print(a.position, i, '%8s %6.3f %3d %4d' % (items[i-1].text, ratio, b, demerits))
+        print(a.position, i, ' %6.3f %3d %4d' % (r, b, demerits))
       s = Breakpoint(i, a.line + 1, cum.width + item.width,
                      cum.stretch + item.stretch,
                      cum.shrink + item.shrink,
@@ -110,10 +110,10 @@ def show_results(items, line_width, breaks) -> List[Tuple[float, List]]:
   print(' ----- ------- --------  ----')
   for i, it in enumerate(items):
     if i in breaks:
-      ratio = get_ratio(line_width, width, stretch, shrink)
-      demerits = print_line(ratio, line)
+      r = ratio(line_width, width, stretch, shrink)
+      demerits = print_line(r, line)
       total_demerits += demerits
-      lines.append((ratio, line))
+      lines.append((r, line))
 
       line = []
       width = 0
@@ -134,10 +134,10 @@ def show_results(items, line_width, breaks) -> List[Tuple[float, List]]:
 
   # remaining
   stretch += math.inf
-  ratio = get_ratio(line_width, width, stretch, shrink)
-  demerits = print_line(ratio, line)
+  r = ratio(line_width, width, stretch, shrink)
+  demerits = print_line(r, line)
   total_demerits += demerits
-  lines.append((ratio, line))
+  lines.append((r, line))
   print('-----')
   print('Total demerits', total_demerits)
   return lines

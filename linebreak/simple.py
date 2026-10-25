@@ -61,7 +61,7 @@ def line_break(items, line_width, max_stretch_ratio=1.0,
         penalty = item.value
 
     if is_break:
-      active = _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio,
+      active = _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio,
                           final_pass)
       if not active:
         raise RuntimeError(f"No feasible breakpoints found at {i} with line width "
@@ -101,13 +101,12 @@ def line_break(items, line_width, max_stretch_ratio=1.0,
   return breaks
 
 
-def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio,
+def _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio,
                final_pass=False):
   AWFUL_BAD = 0x3fff_ffff
   min_demerits = AWFUL_BAD
   best_breakpoint = None
   survivors = []
-  item = items[i]
   hyphen_width = 0
   if isinstance(item, Penalty):
       hyphen_width = item.width
@@ -116,13 +115,13 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio,
   # set even if no candidate is feasible (cf. TeX's artificial_demerits).
   forced = penalty <= EJECT_PENALTY
   for a in active:
-    ratio = get_ratio(line_width,
-                      cum.width - a.total_width + hyphen_width,
-                      cum.stretch - a.total_stretch,
-                      cum.shrink - a.total_shrink)
+    r = ratio(line_width,
+              cum.width - a.total_width + hyphen_width,
+              cum.stretch - a.total_stretch,
+              cum.shrink - a.total_shrink)
 
-    # Cannot say 'if ratio >= -1', because ratio could be NaN.
-    if (not ratio < -1) and not forced:
+    # Cannot say 'if r >= -1', because ratio could be NaN.
+    if (not r < -1) and not forced:
       survivors.append(a)
 
     # Only consider feasible breakpoints, except at a forced break where
@@ -138,17 +137,10 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio,
     # a candidate and the one with the lowest total demerits wins.  As a forced
     # break leaves exactly one active node either way, this choice affects only
     # which line is picked and the reported totals, never later comparisons.
-    feasible = -1 <= ratio <= max_stretch_ratio
+    feasible = -1 <= r <= max_stretch_ratio
     if feasible or forced:
-        b = badness(ratio) if feasible else INF_BAD
+        b = badness(r) if feasible else INF_BAD
         d = demerits(b, penalty)
-
-        if TRACE:
-            start = items[a.position - 1] if a.position > 0 else Box(0, '^')
-            end = items[i-1]
-            if not isinstance(end, Box):
-                end = Box(0, '$')
-            print('%10s  %10s  %8d' % (start.text, end.text, d))
 
         # The new line starts right after the break item.  Note that TeX82
         # discards all discardable items (glue, penalties, kerns, math) at the
@@ -159,7 +151,7 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio,
                        cum.stretch + item.stretch,
                        cum.shrink + item.shrink,
                        a.total_demerits + d,
-                       ratio, d, a)
+                       r, d, a)
         if s.total_demerits < min_demerits:
           min_demerits = s.total_demerits
           best_breakpoint = s
@@ -173,16 +165,16 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio,
   # position, so this is the latest possible start, the least overfull line.
   if final_pass and not survivors:
     a = active[-1]
-    ratio = get_ratio(line_width,
+    r = ratio(line_width,
                       cum.width - a.total_width + hyphen_width,
                       cum.stretch - a.total_stretch,
                       cum.shrink - a.total_shrink)
     if TRACE:
-      print('Overfull line forced at', i, 'ratio %.3f' % ratio)
+      print('Overfull line forced at', i, 'ratio %.3f' % r)
     survivors.append(Breakpoint(i, a.line + 1, cum.width + item.width,
                                 cum.stretch + item.stretch,
                                 cum.shrink + item.shrink,
-                                a.total_demerits, ratio, 0, a))
+                                a.total_demerits, r, 0, a))
 
   return survivors
 

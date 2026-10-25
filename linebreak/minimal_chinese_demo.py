@@ -26,7 +26,7 @@ from PyQt6.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QComboBox,
                              QTableWidget, QTableWidgetItem, QVBoxLayout,
                              QWidget)
 
-from common import Box, Glue, get_ratio, badness
+from common import Box, Glue, ratio, badness
 from util import get_box, FREETYPE_SCALE
 import minimal
 
@@ -170,7 +170,7 @@ def make_lines(items, line_width, breaks) -> List[Tuple[float, List]]:
     bset = set(breaks)
     for i, it in enumerate(items):
         if i in bset:
-            lines.append((get_ratio(line_width, width, stretch, shrink), line))
+            lines.append((ratio(line_width, width, stretch, shrink), line))
             line, width, stretch, shrink = [], 0, 0, 0
             continue
         line.append(it)
@@ -179,7 +179,7 @@ def make_lines(items, line_width, breaks) -> List[Tuple[float, List]]:
             stretch += it.stretch
             shrink += it.shrink
     if line:
-        lines.append((get_ratio(line_width, width, stretch + math.inf, shrink), line))
+        lines.append((ratio(line_width, width, stretch + math.inf, shrink), line))
     return lines
 
 

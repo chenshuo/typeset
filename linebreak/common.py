@@ -50,7 +50,7 @@ Penalty.NO_BREAK = Penalty(INF_PENALTY)
 Penalty.EJECT = Penalty(EJECT_PENALTY)
 
 
-def get_ratio(line_width, total_width, total_stretch, total_shrink) -> float:
+def ratio(line_width, total_width, total_stretch, total_shrink) -> float:
   if total_width == line_width:
     return 0.0
 
