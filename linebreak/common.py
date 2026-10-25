@@ -74,3 +74,20 @@ def badness(ratio: float) -> int:
 
   # Not using round() because Python3's round-half-to-even
   return min(INF_BAD, int(100 * (abs(ratio) ** 3) + 0.5))
+
+
+KP81_PENALTY = False
+LINE_PENALTY = 10
+
+def demerits(badness, penalty) -> int:
+  demerits = (LINE_PENALTY + badness)**2
+
+  if penalty >= 0:
+    demerits += penalty ** 2
+    if KP81_PENALTY:
+      demerits = (LINE_PENALTY + badness + penalty)**2
+  elif penalty > EJECT_PENALTY:
+    demerits -= penalty ** 2
+
+  return demerits
+

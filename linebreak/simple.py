@@ -4,6 +4,7 @@ Box, Glue, and Penalty.  No double hyphen demerits, no fit classes.
 """
 
 from common import *
+import common
 from dataclasses import dataclass
 from typing import List, Optional, Tuple
 
@@ -31,8 +32,6 @@ class LineBreakResult:
 
 
 TRACE = False
-KP81_PENALTY = False
-LINE_PENALTY = 10
 
 def line_break(items, line_width, max_stretch_ratio=1.0,
                final_pass=False) -> List[LineBreakResult]:
@@ -142,19 +141,14 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio,
     feasible = -1 <= ratio <= max_stretch_ratio
     if feasible or forced:
         b = badness(ratio) if feasible else INF_BAD
-        demerits = (LINE_PENALTY + b)**2
-        if penalty >= 0:
-          demerits += penalty ** 2
-          if KP81_PENALTY:
-            demerits = (LINE_PENALTY + b + penalty)**2
-        elif penalty > EJECT_PENALTY:
-          demerits -= penalty ** 2
+        d = demerits(b, penalty)
+
         if TRACE:
             start = items[a.position - 1] if a.position > 0 else Box(0, '^')
             end = items[i-1]
             if not isinstance(end, Box):
                 end = Box(0, '$')
-            print('%10s  %10s  %8d' % (start.text, end.text, demerits))
+            print('%10s  %10s  %8d' % (start.text, end.text, d))
 
         # The new line starts right after the break item.  Note that TeX82
         # discards all discardable items (glue, penalties, kerns, math) at the
@@ -164,8 +158,8 @@ def _try_break(active, cum, penalty, items, i, line_width, max_stretch_ratio,
         s = Breakpoint(i, a.line + 1, cum.width + item.width,
                        cum.stretch + item.stretch,
                        cum.shrink + item.shrink,
-                       a.total_demerits + demerits,
-                       ratio, demerits, a)
+                       a.total_demerits + d,
+                       ratio, d, a)
         if s.total_demerits < min_demerits:
           min_demerits = s.total_demerits
           best_breakpoint = s
@@ -229,8 +223,8 @@ if __name__ == "__main__":
       for i, item in enumerate(items):
         print(f"{i:3} {item}")
 
-    LINE_PENALTY = 1
-    KP81_PENALTY = True
+    common.LINE_PENALTY = 1
+    common.KP81_PENALTY = True
     line_width = 500
     line_width = 390
     breaks = line_break(items, line_width, 1)

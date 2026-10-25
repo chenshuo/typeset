@@ -1,4 +1,5 @@
 import pytest
+import os
 
 from common import Box, Glue
 from util import get_box
@@ -12,7 +13,6 @@ from uniseg.linebreak import line_break_units
 
 FONT = '/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc'
     # 0 is JP, 1 is KR, 2 is SC, 3 is TC, 4 is HK
-FONT = 'fonts/NotoSong.ttc'
 FONT_INDEX = 2
 
 TEXT1 = "臣本布衣，躬耕于南阳，苟全性命于乱世，不求闻达于诸侯。先帝不以臣卑鄙，猥自枉屈，三顾臣于草庐之中，谘臣以当世之事，由是感激，遂许先帝以驱驰。"
@@ -172,6 +172,11 @@ def test_get_items_minimal2():
     run(12, width, TEXT2, get_items, 'minimal_16dp.pdf', rho=2)
     run_greedy(12, width, TEXT2, get_items, 'minimal_16greedy.pdf', rho=2)
 
+    width = 15.5
+    get_items_func = partial(get_items, punct=PUNCT_COMPRESS)
+    run(12, width, TEXT2, get_items_func, 'minimal_16dpc.pdf', rho=2)
+    run_greedy(12, width, TEXT2, get_items_func, 'minimal_16greedyc.pdf', rho=2)
+
 
 def test_get_items_minimal3():
     global INDENT
@@ -207,12 +212,18 @@ def test_get_items_minimal5():
 
 
 def test_get_items_minimal6():
+    chws_font = 'fonts/NotoSong.ttc'
+    if not os.path.exists(chws_font):
+        raise RuntimeError(f'{chws_font} not exists.')
+    global FONT
+    old_font, FONT = FONT, chws_font
     items = get_items_chws(TEXT4, 12)
     for i, it in enumerate(items[:30]):
         print('%2d' % i, it)
 
     run(12, 10, TEXT4[:23], get_items_chws, 'minimal_10chws.pdf')
     run(12, 16, TEXT4, get_items_chws, 'minimal_16chws.pdf')
+    FONT = old_font
 
 
 def unused():
