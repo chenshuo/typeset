@@ -60,11 +60,10 @@ def line_break(items, line_width, max_stretch_ratio=1.0) -> List[int]:
 
   # Back trace
   breaks = []
-  while best:
+  while best.previous:
     breaks.append(best.position)
     best = best.previous
-  assert breaks[-1] == -1
-  breaks.pop()
+  assert best.position == -1
   breaks.reverse()
   return breaks
 

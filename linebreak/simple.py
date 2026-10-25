@@ -98,6 +98,8 @@ def line_break(items, line_width, max_stretch_ratio=1.0,
                                   best.ratio,
                                   best.demerits))
     best = best.previous
+  # breaks is never empty here: the paragraph ends with Penalty.EJECT, so every
+  # active node is at len(items) - 1 (asserted above), never the initial node.
   assert breaks[-1].start == 0, breaks
   breaks.reverse()
   return breaks
