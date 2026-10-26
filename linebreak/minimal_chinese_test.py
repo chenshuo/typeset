@@ -118,7 +118,7 @@ def run(size, text_width, text, get_items, output, rho=1):
 
     breaks = line_break(items, line_width, rho)
     lines = show_results(items, line_width, breaks)
-    render(FONT, size, lines, line_width, output)
+    render(FONT, size, lines, line_width, output, font_index=FONT_INDEX)
 
 
 def greedy(items, line_width) -> List[int]:
@@ -151,7 +151,7 @@ def run_greedy(size, text_width, text, get_items, output, rho=1):
 
     breaks = greedy(items, line_width)
     lines = show_results(items, line_width, breaks)
-    render(FONT, size, lines, line_width, output)
+    render(FONT, size, lines, line_width, output, font_index=FONT_INDEX)
 
 
 def test_get_items_minimal1():
@@ -161,9 +161,8 @@ def test_get_items_minimal1():
     run(12, 12, TEXT1nb, get_items, 'minimal_12nb.pdf')
 
 
-def test_get_items_minimal2():
-    global INDENT
-    INDENT = 0
+def test_get_items_minimal2(monkeypatch):
+    monkeypatch.setitem(globals(), 'INDENT', 0)
     items = get_items(TEXT2, 12)
     for i, it in enumerate(items):
         print('%2d' % i, it)
@@ -179,8 +178,6 @@ def test_get_items_minimal2():
 
 
 def test_get_items_minimal3():
-    global INDENT
-    INDENT = 2
     items = get_items(TEXT1, 12)
     for i, it in enumerate(items[:13]):
         print('%2d' % i, it)
@@ -211,19 +208,18 @@ def test_get_items_minimal5():
         run(12, w, TEXT1, get_items_func, 'minimal_%dhanging.pdf' % w)
 
 
-def test_get_items_minimal6():
-    chws_font = 'fonts/NotoSong.ttc'
+def test_get_items_minimal6(monkeypatch):
+    chws_font = 'WenYuanSerifSC-Regular.otf'
     if not os.path.exists(chws_font):
-        raise RuntimeError(f'{chws_font} not exists.')
-    global FONT
-    old_font, FONT = FONT, chws_font
+        pytest.skip(f'{chws_font} not exists.')
+    monkeypatch.setitem(globals(), 'FONT', chws_font)
+    monkeypatch.setitem(globals(), 'FONT_INDEX', 0)
     items = get_items_chws(TEXT4, 12)
     for i, it in enumerate(items[:30]):
         print('%2d' % i, it)
 
     run(12, 10, TEXT4[:23], get_items_chws, 'minimal_10chws.pdf')
     run(12, 16, TEXT4, get_items_chws, 'minimal_16chws.pdf')
-    FONT = old_font
 
 
 def unused():
