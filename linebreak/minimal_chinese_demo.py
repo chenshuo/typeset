@@ -10,6 +10,7 @@ QRawFont/QGlyphRun using glyph indices.
 import math
 import os
 import sys
+import unicodedata
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -27,7 +28,7 @@ from PyQt6.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QComboBox,
                              QWidget)
 
 from common import Box, Glue, ratio, badness
-from util import get_box, FREETYPE_SCALE
+from util import get_box, get_space_glue, FREETYPE_SCALE
 import minimal
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -41,12 +42,34 @@ TEXTS = {
     '论语·学而': '子曰：“学而时习之，不亦说乎？有朋自远方来，不亦乐乎？人不知而不愠，不亦君子乎？”',
     '论语·述而': '子曰：“三人行，必有我师焉。择其善者而从之，其不善者而改之。”',
     '论语·里仁': '子曰：“参乎，吾道一以贯之。”曾子曰：“唯。”子出，门人问曰：“何谓也？”曾子曰：“夫子之道，忠恕而已矣。”',
-    '晁错论': '天下之患，最不可为者，名为治平无事，而其实有不测之忧。坐观其变，而不为之所，则恐至於不可救；起而强为之，则天下狃於治平之安而不吾信。惟仁人君子豪杰之士，为能出身为天下犯大难，以求成大功；此固非勉强期月之间，而苟以求名之所能也。'
+    '晁错论': '天下之患，最不可为者，名为治平无事，而其实有不测之忧。坐观其变，而不为之所，则恐至於不可救；起而强为之，则天下狃於治平之安而不吾信。惟仁人君子豪杰之士，为能出身为天下犯大难，以求成大功；此固非勉强期月之间，而苟以求名之所能也。',
+    '中英混排': 'Knuth和Plass在1981年发表了Breaking Paragraphs into Lines一文，提出了TeX使用的断行算法。',
+    'Frog King (Knuth-Plass 1981)': (
+        "In olden times when wishing still helped one, there lived a king "
+        "whose daughters were all beautiful; but the youngest was so beautiful "
+        "that the sun itself, which has seen so much, was astonished whenever it "
+        "shone in her face. Close by the king's castle lay a great dark forest, "
+        "and under an old lime-tree in the forest was a well, and when the day "
+        "was very warm, the king's child went out into the forest and sat down "
+        "by the side of the cool fountain; and when she was bored she took a "
+        "golden ball, and threw it up on high and caught it; and this ball was "
+        "her favorite plaything."),
 }
 
 STOP_PUNCTS = set('、：，；。？！')
 OPEN_PUNCTS = set('‘“（《〈')
 CLOSE_PUNCTS = set('’”）》〉')
+CJK_PUNCTS = STOP_PUNCTS | OPEN_PUNCTS | CLOSE_PUNCTS
+
+
+def is_latin(ch: str) -> bool:
+    """True for Latin letters, digits and other narrow (non-CJK) characters."""
+    return bool(ch) and ch not in CJK_PUNCTS and unicodedata.east_asian_width(ch) not in ('W', 'F')
+
+
+def is_cjk_ideograph(ch: str) -> bool:
+    """True for CJK characters other than the punctuation handled above."""
+    return bool(ch) and ch not in CJK_PUNCTS and not is_latin(ch)
 
 # Punctuation strategies
 P_NONE, P_HALF, P_HANG, P_CONTEXT = range(4)
@@ -82,6 +105,7 @@ class Params:
     punct_stretch: float  # in em
     punct_shrink: float   # in em
     no_runt: bool
+    latin_gap: float = 0.25  # CJK-Latin gap, in em
 
 
 _HB_CACHE = {}
@@ -110,6 +134,9 @@ def build_items(p: Params) -> List:
     cjk_glue = Glue(0, em(p.cjk_stretch), em(p.cjk_shrink), '')
     punct_glue = Glue(em(0.5), em(p.punct_stretch), em(p.punct_shrink), '')
     hang_glue = Glue(em(1.0), em(p.punct_stretch), em(p.punct_shrink), '')
+    space_glue = get_space_glue(hb_font)  # between English words
+    gap_glue = Glue(em(p.latin_gap), em(p.latin_gap / 2), em(p.latin_gap / 2), '')  # CJK <-> Latin
+    no_glue = Glue(0, 0, 0, '')  # break point without flexibility, e.g. after 'well-'
 
     units = [u for u in line_break_units(p.text) if u.strip()]
     if p.no_runt and len(units) >= 2:
@@ -117,11 +144,18 @@ def build_items(p: Params) -> List:
         units = units[:-2] + [units[-2] + units[-1]]
 
     for i, seg in enumerate(units):
-        box = get_box(seg, hb_font)
-        last = seg[-1]
+        # UAX #14 keeps the trailing space in the unit ('Hello '); move it into glue.
+        word = seg.rstrip()
+        has_space = word != seg
+        box = get_box(word, hb_font)
+        last = word[-1]
         nxt = units[i + 1][0] if i + 1 < len(units) else ''
         glue = cjk_glue
-        if p.strategy == P_HALF and last in (STOP_PUNCTS | CLOSE_PUNCTS):
+        if is_latin(last) and is_latin(nxt):
+            glue = space_glue if has_space else no_glue
+        elif (is_latin(last) and is_cjk_ideograph(nxt)) or (is_cjk_ideograph(last) and is_latin(nxt)):
+            glue = gap_glue
+        elif p.strategy == P_HALF and last in (STOP_PUNCTS | CLOSE_PUNCTS):
             box.width -= em(0.5)
             glue = punct_glue
         elif p.strategy == P_HANG and last in STOP_PUNCTS:
@@ -397,6 +431,8 @@ class Main(QMainWindow):
         fl.addRow('汉字间 z (shrink)', self.cjk_shrink)
         fl.addRow('标点后 y (stretch)', self.punct_stretch)
         fl.addRow('标点后 z (shrink)', self.punct_shrink)
+        self.latin_gap = QDoubleSpinBox(); self.latin_gap.setDecimals(4); self.latin_gap.setRange(0, 1); self.latin_gap.setSingleStep(1/8); self.latin_gap.setValue(1/4)
+        fl.addRow('中西文间距 w', self.latin_gap)
         form.addWidget(g)
 
         g = QGroupBox('显示')
@@ -458,7 +494,7 @@ class Main(QMainWindow):
         self.text_edit.textChanged.connect(self.refresh)
         self.strategy_group.idToggled.connect(self.on_strategy)
         for w in (self.chars_spin, self.size_spin, self.indent_spin, self.rho_spin,
-                  self.cjk_stretch, self.cjk_shrink, self.punct_stretch, self.punct_shrink):
+                  self.cjk_stretch, self.cjk_shrink, self.punct_stretch, self.punct_shrink, self.latin_gap):
             w.valueChanged.connect(self.refresh)
         self.algo_combo.currentIndexChanged.connect(self.refresh)
         self.runt_check.toggled.connect(self.refresh)
@@ -498,6 +534,7 @@ class Main(QMainWindow):
             punct_stretch=self.punct_stretch.value(),
             punct_shrink=self.punct_shrink.value(),
             no_runt=self.runt_check.isChecked(),
+            latin_gap=self.latin_gap.value(),
         )
 
     def refresh(self):
