@@ -139,7 +139,7 @@ def build_items(p: Params) -> List:
 # Line breaking
 # ---------------------------------------------------------------------------
 
-def greedy(items, line_width) -> List[int]:
+def greedy_first_fit(items, line_width) -> List[int]:
     """Puts as many Boxes as possible in each line, as long as r >= -1."""
     breaks = []
     start = 0
@@ -160,6 +160,50 @@ def greedy(items, line_width) -> List[int]:
         if isinstance(item, Glue):
             stretch += item.stretch
             shrink += item.shrink
+    return breaks
+
+
+def greedy_min_ratio(items, line_width) -> List[int]:
+    """For each line, picks the feasible break (r >= -1) with the smallest |r|.
+
+    Lines are still decided one at a time (no look-ahead), but instead of
+    taking the last break that fits, every break that fits is considered and
+    the one whose line needs the least stretching or shrinking wins.
+    """
+    def is_break(i):
+        return isinstance(items[i], Glue) and i > 0 and isinstance(items[i - 1], Box)
+
+    breaks = []
+    start = 0
+    n = len(items)
+    while start < n:
+        best, best_r = None, math.inf
+        first = None
+        width = stretch = shrink = 0
+        overflow = False
+        for i in range(start, n):
+            if is_break(i):
+                if width - shrink > line_width:
+                    overflow = True
+                    break
+                if first is None:
+                    first = i
+                r = ratio(line_width, width, stretch, shrink)
+                if not math.isnan(r) and abs(r) <= best_r:
+                    best, best_r = i, abs(r)
+            item = items[i]
+            width += item.width
+            if isinstance(item, Glue):
+                stretch += item.stretch
+                shrink += item.shrink
+        if not overflow and width - shrink <= line_width:
+            break  # the rest fits on the last line
+        if best is None:
+            best = first
+        if best is None:
+            break  # no break point left at all
+        breaks.append(best)
+        start = best + 1
     return breaks
 
 
@@ -332,7 +376,7 @@ class Main(QMainWindow):
         self.chars_spin = QSpinBox(); self.chars_spin.setRange(4, 60); self.chars_spin.setValue(16)
         self.size_spin = QSpinBox(); self.size_spin.setRange(10, 80); self.size_spin.setValue(24); self.size_spin.setSuffix(' px')
         self.indent_spin = QSpinBox(); self.indent_spin.setRange(0, 4); self.indent_spin.setValue(2)
-        self.algo_combo = QComboBox(); self.algo_combo.addItems(['Knuth-Plass (minimal.py)', '贪心 (first fit)'])
+        self.algo_combo = QComboBox(); self.algo_combo.addItems(['Knuth-Plass (minimal.py)', '贪心 (first fit)', '贪心 (每行最小 |r|)'])
         self.rho_spin = QDoubleSpinBox(); self.rho_spin.setRange(0.1, 20); self.rho_spin.setSingleStep(0.1); self.rho_spin.setValue(1.0)
         self.runt_check = QCheckBox('段末禁止单字成行')
         fl.addRow('每行字数', self.chars_spin)
@@ -470,10 +514,13 @@ class Main(QMainWindow):
             f'{i:3d} {fmt_item(it, p.size)}' for i, it in enumerate(items)))
 
         try:
-            if self.algo_combo.currentIndex() == 0:
+            algo = self.algo_combo.currentIndex()
+            if algo == 0:
                 breaks = minimal.line_break(items, line_width, rho)
+            elif algo == 1:
+                breaks = greedy_first_fit(items, line_width)
             else:
-                breaks = greedy(items, line_width)
+                breaks = greedy_min_ratio(items, line_width)
         except RuntimeError as ex:
             self.status.setStyleSheet('color: #c00; font-weight: bold;')
             self.status.setText(f'无可行方案：{ex}  （试试增大 ρ）')
