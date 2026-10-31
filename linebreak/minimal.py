@@ -89,8 +89,7 @@ def _try_break(active, cum, item, i, line_width, max_stretch_ratio):
               total_stretch=cum.stretch - a.cum_stretch,
               total_shrink=cum.shrink - a.cum_shrink)
 
-    # Cannot say 'if r >= -1', because ratio could be NaN.
-    if not r < -1:
+    if r >= -1:
       survivors.append(a)
 
     # Only consider feasible breakpoints.

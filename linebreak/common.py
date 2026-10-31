@@ -21,7 +21,12 @@ class Glue:
   text: str = ' '
 
   def get_width(self, ratio: float) -> float:
-    return self.width + ratio * (self.stretch if ratio >= 0 else self.shrink)
+    # A non-finite ratio (underfull without stretch, overfull without shrink)
+    # leaves the glue at its natural width; also avoid 0 * inf = NaN.
+    if ratio == 0 or not math.isfinite(ratio):
+      return self.width
+    amount = self.stretch if ratio > 0 else self.shrink
+    return self.width + ratio * amount
 
 Glue.ZERO = Glue(0, 0, 0)
 Glue.INF = Glue(0, math.inf, 0)
@@ -58,18 +63,20 @@ def ratio(line_width, total_width, total_stretch, total_shrink) -> float:
   if total_width < line_width:
     if total_stretch > 0:
       return (line_width - total_width) / total_stretch
+    return math.inf
 
   # shrink
   if total_width > line_width:
     if total_shrink > 0:
       return (line_width - total_width) / total_shrink
+    return -math.inf
 
   # undefined
   return math.nan
 
 
 def badness(ratio: float) -> int:
-  if math.isnan(ratio) or ratio < -1.0:
+  if not math.isfinite(ratio) or ratio < -1.0:
     return INF_BAD
 
   # Not using round() because Python3's round-half-to-even

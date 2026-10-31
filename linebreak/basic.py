@@ -123,14 +123,13 @@ def _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio,
               total_stretch=cum.stretch - a.cum_stretch,
               total_shrink=cum.shrink - a.cum_shrink)
 
-    # Cannot say 'if r >= -1', because ratio could be NaN.
-    if (not r < -1) and not forced:
+    if r >= -1 and not forced:
       survivors.append(a)
 
     # Only consider feasible breakpoints, except at a forced break where
     # infeasible lines are accepted with maximal badness.
     #
-    # Using INF_BAD for any infeasible line (overfull, too loose, or NaN) is a
+    # Using INF_BAD for any infeasible line (overfull or too loose) is a
     # simplification of TeX82 (tex.web §851-855).  There, an infeasible line
     # at a forced break is normally just deactivated and dropped; only when
     # this would empty the active list on the final pass is the last remaining

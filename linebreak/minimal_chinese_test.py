@@ -46,8 +46,7 @@ def get_items(text, size, punct=PUNCT_NONE, cjk_glue=None):
     if INDENT > 0:
         items.append(Box(size*INDENT, '　'*INDENT))
     if cjk_glue is None:
-        cjk_shrink = 0 if punct else 1e-5
-        cjk_glue = Glue(0, size/6, cjk_shrink, '')
+        cjk_glue = Glue(0, size/6, 0, '')
 
     if punct == PUNCT_COMPRESS:
         punct_glue = Glue(size/2, size/3, size/4, '')
@@ -85,8 +84,7 @@ def get_items_chws(text, size, chws=True):
     if INDENT > 0:
         items.append(Box(size*INDENT, '　'*INDENT))
     
-    cjk_shrink = 0 if 0 else 1e-5
-    cjk_glue = Glue(0, size/6, cjk_shrink, '')
+    cjk_glue = Glue(0, size/6, 0, '')
 
     punct_glue = Glue(size/2, size/3, size/4, '')
 

@@ -223,7 +223,7 @@ def greedy_min_ratio(items, line_width) -> List[int]:
                 if first is None:
                     first = i
                 r = ratio(line_width, width, stretch, shrink)
-                if not math.isnan(r) and abs(r) <= best_r:
+                if math.isfinite(r) and abs(r) <= best_r:
                     best, best_r = i, abs(r)
             item = items[i]
             width += item.width
@@ -336,7 +336,7 @@ class Canvas(QWidget):
         for li, (ratio, line) in enumerate(self.lines):
             baseline = top + li * lh
             x = left
-            r = 0.0 if math.isnan(ratio) else ratio
+            r = ratio if math.isfinite(ratio) else 0.0
             for it in line:
                 if isinstance(it, Box):
                     if self.show_boxes and it.width > 0:
@@ -424,7 +424,7 @@ class Main(QMainWindow):
         g = QGroupBox('Glue 参数（单位：em）')
         fl = QFormLayout(g)
         self.cjk_stretch = QDoubleSpinBox(); self.cjk_stretch.setDecimals(4); self.cjk_stretch.setRange(0, 2); self.cjk_stretch.setSingleStep(1/12); self.cjk_stretch.setValue(1/6)
-        self.cjk_shrink = QDoubleSpinBox(); self.cjk_shrink.setDecimals(5); self.cjk_shrink.setRange(0, 1); self.cjk_shrink.setSingleStep(0.00001); self.cjk_shrink.setValue(1e-5)
+        self.cjk_shrink = QDoubleSpinBox(); self.cjk_shrink.setDecimals(4); self.cjk_shrink.setRange(0, 1); self.cjk_shrink.setSingleStep(1/12); self.cjk_shrink.setValue(0)
         self.punct_stretch = QDoubleSpinBox(); self.punct_stretch.setDecimals(4); self.punct_stretch.setRange(0, 2); self.punct_stretch.setSingleStep(1/12); self.punct_stretch.setValue(1/3)
         self.punct_shrink = QDoubleSpinBox(); self.punct_shrink.setDecimals(4); self.punct_shrink.setRange(0, 1); self.punct_shrink.setSingleStep(1/12); self.punct_shrink.setValue(1/4)
         fl.addRow('汉字间 y (stretch)', self.cjk_stretch)
@@ -591,7 +591,7 @@ class Main(QMainWindow):
 def fmt_item(it, size):
     if isinstance(it, Box):
         return f"Box(width={it.width / size:5.2f}em, '{it.text}')"
-    return f'Glue(width={it.width / size:.2f}em, stretch={it.stretch / size:.3f}em, shrink={it.shrink / size:.5f}em)'
+    return f'Glue(width={it.width / size:.2f}em, stretch={it.stretch / size:.3f}em, shrink={it.shrink / size:.3f}em)'
 
 
 def main():
