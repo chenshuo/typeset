@@ -33,8 +33,11 @@ import minimal
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 FONT = '/usr/share/fonts/opentype/noto/NotoSerifCJK-Regular.ttc'
+# FONT = '/usr/share/fonts/truetype/wqy/wqy-microhei.ttc'
+# FONT = '/usr/share/fonts/truetype/droid/DroidSansFallbackFull.ttf'
+
 FONT_INDEX = 2  # 0 JP, 1 KR, 2 SC, 3 TC, 4 HK
-QT_FAMILY = 'Noto Serif CJK SC'
+QT_FAMILY = None  # set in main() from the actually-loaded FONT file
 
 TEXTS = {
     '出师表': "臣本布衣，躬耕于南阳，苟全性命于乱世，不求闻达于诸侯。先帝不以臣卑鄙，猥自枉屈，三顾臣于草庐之中，谘臣以当世之事，由是感激，遂许先帝以驱驰。后值倾覆，受任于败军之际，奉命于危难之间，尔来二十有一年矣。",
@@ -595,11 +598,19 @@ def fmt_item(it, size):
 
 
 def main():
+    global QT_FAMILY
     app = QApplication(sys.argv)
     fid = QFontDatabase.addApplicationFont(FONT)
     if fid < 0:
         print(f'Cannot load font {FONT}', file=sys.stderr)
         sys.exit(1)
+    # Use the family Qt actually registered for FONT, so QRawFont draws with
+    # the same font HarfBuzz shaped against -- otherwise glyph indices from
+    # HarfBuzz (keyed to FONT/FONT_INDEX) get fed to an unrelated font and
+    # render as boxes (.notdef / tofu).
+    families = QFontDatabase.applicationFontFamilies(fid)
+    QT_FAMILY = families[FONT_INDEX] if FONT_INDEX < len(families) else families[0]
+    print('Font:', QT_FAMILY)
     minimal.TRACE = False
     w = Main()
     w.show()
