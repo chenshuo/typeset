@@ -21,6 +21,9 @@ class Breakpoint:
   demerits: int
   previous: "Breakpoint" = None
 
+  def __str__(self):
+    return f'r={self.ratio:6.3f} D={self.total_demerits} prev={self.previous.position}'
+
 
 @dataclass
 class LineBreakResult:
@@ -66,6 +69,11 @@ def line_break(items, line_width, max_stretch_ratio=1.0,
       if not active:
         raise RuntimeError(f"No feasible breakpoints found at {i} with line width "
                            f"{line_width} and max stretch ratio {max_stretch_ratio}.")
+      if TRACE:
+        if active[-1].position == i:
+          print('%3d' % i, items[i-1].text, active[-1])
+        else:
+          print('%3d' % i, items[i-1].text)
 
     # Update running sums
     if isinstance(item, Box):
@@ -155,7 +163,7 @@ def _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio,
                      cum_shrink=cum.shrink + item.shrink,
                      total_demerits=a.total_demerits + d,
                      ratio=r, demerits=d, previous=a)
-      if s.total_demerits < min_demerits:
+      if s.total_demerits < min_demerits:  # How about <= ?
         min_demerits = s.total_demerits
         best_breakpoint = s
 

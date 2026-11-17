@@ -29,7 +29,7 @@ class Glue:
     return self.width + ratio * amount
 
 Glue.ZERO = Glue(0, 0, 0)
-Glue.INF = Glue(0, math.inf, 0)
+Glue.INF = Glue(0, math.inf, 0, '$$')
 
 
 INF_BAD = 10000
