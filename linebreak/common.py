@@ -10,6 +10,9 @@ class Box:
   text: str = ""
   glyphs: list = None
 
+  def __str__(self):
+    return f'Box(w={self.width:.3f}, "{self.text}")'
+
 
 @dataclass
 class Glue:
@@ -47,9 +50,8 @@ class Penalty:
   value: int
   width: float = 0.0
   text: str = ''
+  is_hyphen: bool = False
 
-  def is_hyphen(self) -> bool:
-    return self.width > 0 and self.text == '-'
 
 Penalty.NO_BREAK = Penalty(INF_PENALTY)
 Penalty.EJECT = Penalty(EJECT_PENALTY)

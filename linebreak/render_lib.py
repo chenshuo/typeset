@@ -84,7 +84,7 @@ def render(font, size, lines, line_width, output, font_index=0):
                     _libcairo.cairo_show_glyphs(raw_cr, arr, len(it.glyphs))
                 pos_x += it.width
             elif isinstance(it, Glue):
-                pos_x += it.get_width(ratio)
+                pos_x += it.get_width(max(ratio, -1))
         pos_y += line_height
         # print('%.2f' % (pos_x - left_margin))
 
