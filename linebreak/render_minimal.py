@@ -46,7 +46,7 @@ def main():
     ap.add_argument("--font_index", type=int, default=0, help="Font index of TTC font (default: 0)")
     ap.add_argument("--size", type=float, default=24.0, help="Font size in px (default: 24)")
     ap.add_argument("--text_width", type=float, default=27.0, help="Text width in em (default: 27)")
-    ap.add_argument("--output", default="output.png", help="Output file path (PNG or PDF, default: output.png)")
+    ap.add_argument("--output", default="output_minimal.png", help="Output file path (PNG or PDF, default: output_minimal.png)")
     args = ap.parse_args()
 
     if not os.path.exists(args.font):

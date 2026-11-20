@@ -64,7 +64,7 @@ def get_items(font_file, size, hyphen_dict, text):
 
 
 def main():
-    ap = argparse.ArgumentParser(description="Render a paragraph using the minimal version of Knuth-Plass line-breaking algorithm.")
+    ap = argparse.ArgumentParser(description="Render a paragraph using the basic version of Knuth-Plass line-breaking algorithm.")
     ap.add_argument("text", nargs="?", default="", help="The text to render")
     # ap.add_argument("-hb", action="store_true", help="Enable HarfBuzz text-shaping (handles kerning/ligatures)")
     ap.add_argument("--font", default=DEFAULT_FONT, help="Path to OTF/TTF/TTC font file")
@@ -73,7 +73,7 @@ def main():
     ap.add_argument("--text_width", type=float, default=21.0, help="Text width in em (default: 21)")
     ap.add_argument("--hyphen", action=argparse.BooleanOptionalAction, default=True, help="Enable hyphenation (default: true)")
     ap.add_argument("--trace", action="store_true", default=False, help="Enable tracing (default: false)")
-    ap.add_argument("--output", default="output.pdf", help="Output file path (PNG or PDF, default: output.pdf)")
+    ap.add_argument("--output", default="output_basic.pdf", help="Output file path (PNG or PDF, default: output_basic.pdf)")
     args = ap.parse_args()
 
     if not os.path.exists(args.font):
