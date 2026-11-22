@@ -151,6 +151,8 @@ def _try_break(active, cum, penalty, item, i, line_width, max_stretch_ratio,
     if feasible or forced:
       b = badness(r) if feasible else INF_BAD
       d = demerits(b, penalty)
+      if TRACE:
+        print('    r=%.3f b=%3d d=%4d D=%5d  %d to %d' % (r, b, d, d+a.total_demerits, a.position, i))
 
       # The new line starts right after the break item.  Note that TeX82
       # discards all discardable items (glue, penalties, kerns, math) at the
