@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paragraph Typesetter</title>
+<style>
+:root {
+  --bg: #f6f5f1; --panel: #ffffff; --text: #1d1d1b; --muted: #6b6a65;
+  --border: #dddbd3; --accent: #9a3b26; --error: #b3261e; --code-bg: #efede6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1b1b19; --panel: #252522; --text: #e9e7e0; --muted: #a09e96;
+    --border: #3a3935; --accent: #e08b6f; --error: #f2b8b5; --code-bg: #2c2c29;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1b1b19; --panel: #252522; --text: #e9e7e0; --muted: #a09e96;
+  --border: #3a3935; --accent: #e08b6f; --error: #f2b8b5; --code-bg: #2c2c29;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 15px/1.5 system-ui, -apple-system, "PingFang SC", "Noto Sans CJK SC", sans-serif;
+}
+main { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
+h1 { font-size: 22px; margin: 0 0 4px; }
+.sub { color: var(--muted); margin: 0 0 20px; }
+.layout { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 820px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+label { display: block; font-size: 13px; color: var(--muted); margin: 12px 0 4px; }
+label:first-child { margin-top: 0; }
+.row label:first-child { margin-top: 12px; }
+input, select, textarea, button {
+  font: inherit; color: var(--text); background: var(--bg);
+  border: 1px solid var(--border); border-radius: 6px; padding: 6px 8px; width: 100%;
+}
+textarea { min-height: 220px; resize: vertical; line-height: 1.6; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.check { display: flex; gap: 16px; margin-top: 12px; font-size: 14px; }
+.check label { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--text); }
+.check input { width: auto; }
+button { cursor: pointer; width: auto; padding: 6px 14px; }
+button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+button:disabled { opacity: .5; cursor: default; }
+.toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+#status { color: var(--muted); font-size: 13px; margin-left: auto; }
+#status.error { color: var(--error); }
+.paper { overflow: auto; border-radius: 6px; background: #fff; border: 1px solid var(--border); min-height: 120px; }
+.paper svg { display: block; max-width: 100%; height: auto; }
+details { margin-top: 16px; }
+footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
+footer a { color: var(--accent); }
+summary { cursor: pointer; color: var(--muted); font-size: 14px; }
+pre { background: var(--code-bg); border-radius: 6px; padding: 10px; overflow: auto; font-size: 12px; line-height: 1.45; max-height: 420px; }
+pre.error { color: var(--error); }
+</style>
+</head>
+<body>
+<main>
+  <h1>段落排版</h1>
+  <p class="sub">用 Knuth-Plass 算法排版中文或中英混排段落。所有计算在浏览器里完成，文本不会上传。</p>
+
+  <div class="layout">
+    <section class="panel">
+      <label for="font">字体</label>
+      <select id="font" disabled></select>
+
+      <div class="row">
+        <div>
+          <label for="size">字号（px）</label>
+          <input id="size" type="number" min="6" max="72" step="1" value="20">
+        </div>
+        <div>
+          <label for="text-width">行宽（em，即每行汉字数）</label>
+          <input id="text-width" type="number" min="4" max="80" step="0.5" value="22">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="indent">首行缩进（em）</label>
+          <input id="indent" type="number" min="0" max="10" step="0.5" value="2">
+        </div>
+        <div>
+          <label for="parskip">段间距（em）</label>
+          <input id="parskip" type="number" min="0" max="5" step="0.1" value="0.5">
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="hyphen-lang">英文断词语言</label>
+          <select id="hyphen-lang">
+            <option value="en_US" selected>en_US</option>
+            <option value="en_GB">en_GB</option>
+            <option value="de_DE">de_DE</option>
+            <option value="fr_FR">fr_FR</option>
+            <option value="">不断词</option>
+          </select>
+        </div>
+        <div>
+          <label for="runt">孤字惩罚（0 关闭）</label>
+          <input id="runt" type="number" min="0" max="10000" step="50" value="0">
+        </div>
+      </div>
+      <div class="check">
+        <label><input id="guides" type="checkbox" checked> 显示版心边界</label>
+        <label><input id="trace" type="checkbox"> 跟踪输出</label>
+      </div>
+
+      <label for="text">文本（空行分段）</label>
+      <textarea id="text">天下之患，最不可为者，名为治平无事，而其实有不测之忧。坐观其变，而不为之所，则恐至於不可救；起而强为之，则天下狃於治平之安而不吾信。惟仁人君子豪杰之士，为能出身为天下犯大难，以求成大功；此固非勉强期月之间，而苟以求名之所能也。
+
+　　臣本布衣，躬耕于南阳，苟全性命于乱世，不求闻达于诸侯。先帝不以臣卑鄙，猥自枉屈，三顾臣于草庐之中，咨臣以当世之事，由是感激，遂许先帝以驱驰。后值倾覆，受任于败军之际，奉命于危难之间，尔来二十有一年矣。
+      </textarea>
+    </section>
+
+    <section class="panel">
+      <div class="toolbar">
+        <button id="dl-svg" disabled>下载 SVG</button>
+        <button id="dl-png" disabled>下载 PNG</button>
+        <span id="status">正在加载 Python 运行时……</span>
+      </div>
+      <div class="paper" id="output"></div>
+      <details id="log-box">
+        <summary>断行结果（ratio / badness / demerits）</summary>
+        <pre id="log"></pre>
+      </details>
+    </section>
+  </div>
+
+  <footer>
+    源代码：<a href="https://github.com/chenshuo/typeset/tree/master/linebreak">github.com/chenshuo/typeset</a>
+  </footer>
+</main>
+
+<script src="https://cdn.jsdelivr.net/pyodide/v0.28.3/full/pyodide.js"></script>
+<script type="module">
+import * as hb from 'https://cdn.jsdelivr.net/npm/harfbuzzjs@1.6.4/dist/index.mjs';
+
+const PY_FILES = ['common.py', 'basic.py', 'simple.py', 'util.py', 'font_util.py', 'typeset.py',
+                  'uharfbuzz.py', 'render_lib.py', 'svg_render.py', 'web_main.py'];
+const $ = (id) => document.getElementById(id);
+const status = $('status');
+
+function setStatus(msg, isError = false) {
+  status.textContent = msg;
+  status.classList.toggle('error', isError);
+}
+
+// ---- Fonts ----
+// The fonts bundled with the site, listed in fonts/fonts.json by build.sh.
+// Each is fetched when first chosen, as CJK fonts are 10-20 MB.
+let pyodide = null;
+let typesetText = null;
+let fonts = [];            // [{file, name}]
+const loaded = new Map();  // file -> path in the Pyodide file system
+let font = null;           // the chosen font: {file, path}
+let selectToken = 0;
+
+function getPref(k) { try { return localStorage.getItem(`typeset-${k}`); } catch (e) { return null; } }
+function setPref(k, v) { try { localStorage.setItem(`typeset-${k}`, v); } catch (e) { /* unavailable */ } }
+
+async function selectFont(file) {
+  const info = fonts.find((f) => f.file === file);
+  const token = ++selectToken;
+  let path = loaded.get(file);
+  if (!path) {
+    setStatus(`正在加载字体 ${info.name}……`);
+    const resp = await fetch(`fonts/${encodeURIComponent(file)}`);
+    if (!resp.ok) throw new Error(`无法加载字体 ${info.name}`);
+    const bytes = new Uint8Array(await resp.arrayBuffer());
+    // Each font gets its own path, uharfbuzz.Blob caches by path.
+    path = `/fonts/${loaded.size + 1}`;
+    pyodide.FS.writeFile(path, bytes);
+    loaded.set(file, path);
+  }
+  if (token !== selectToken) return;  // another font was chosen meanwhile
+  font = { file, path };
+  $('font').value = file;
+  setPref('font', file);
+  run();
+}
+
+$('font').addEventListener('change', () => {
+  selectFont($('font').value).catch((e) => setStatus(e.message, true));
+});
+
+// ---- Typesetting ----
+let lastSvg = '';
+// The value of a number input, 0 allowed; the default if it is blank.
+function num(id, dflt) {
+  const v = $(id).value;
+  return v === '' || isNaN(+v) ? dflt : +v;
+}
+function run() {
+  if (!typesetText || !font) return;
+  const t0 = performance.now();
+  try {
+    const result = typesetText.callKwargs($('text').value, font.path, {
+      size: +$('size').value || 20,
+      text_width: +$('text-width').value || 22,
+      indent: num('indent', 2),
+      par_skip: num('parskip', 0.5),
+      hyphen_lang: $('hyphen-lang').value,
+      runt_penalty: +$('runt').value || 0,
+      trace: $('trace').checked,
+      guides: $('guides').checked,
+    });
+    const [svg, log] = result.toJs();
+    result.destroy();
+    lastSvg = svg;
+    $('output').innerHTML = svg;
+    $('log').textContent = log;
+    $('log').classList.remove('error');
+    $('dl-svg').disabled = $('dl-png').disabled = false;
+    setStatus(`排版用时 ${Math.round(performance.now() - t0)} ms`);
+  } catch (e) {
+    $('log').textContent = String(e.message || e);
+    $('log').classList.add('error');
+    $('log-box').open = true;
+    setStatus('排版出错，详见下方输出', true);
+  }
+}
+
+let timer = null;
+function schedule() {
+  clearTimeout(timer);
+  timer = setTimeout(run, 250);
+}
+for (const id of ['text', 'size', 'text-width', 'indent', 'parskip', 'runt']) $(id).addEventListener('input', schedule);
+for (const id of ['hyphen-lang', 'guides', 'trace']) $(id).addEventListener('change', run);
+
+// ---- Downloads ----
+function download(blob, filename) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+$('dl-svg').addEventListener('click', () => {
+  download(new Blob([lastSvg], { type: 'image/svg+xml' }), 'paragraph.svg');
+});
+$('dl-png').addEventListener('click', async () => {
+  const url = URL.createObjectURL(new Blob([lastSvg], { type: 'image/svg+xml' }));
+  const img = new Image();
+  img.src = url;
+  await img.decode();
+  const scale = 3;
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth * scale;
+  canvas.height = img.naturalHeight * scale;
+  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+  URL.revokeObjectURL(url);
+  canvas.toBlob((blob) => download(blob, 'paragraph.png'), 'image/png');
+});
+
+// ---- Startup ----
+async function main() {
+  globalThis.hbjs = hb;
+  pyodide = await loadPyodide();
+  setStatus('正在安装 pyphen 和 uniseg……');
+  await pyodide.loadPackage('micropip');
+  await pyodide.runPythonAsync(`
+import micropip
+await micropip.install(['pyphen==0.17.2', 'uniseg==0.10.1'])
+`);
+  setStatus('正在加载排版代码……');
+  pyodide.FS.mkdirTree('/app');
+  pyodide.FS.mkdirTree('/fonts');
+  await Promise.all(PY_FILES.map(async (f) => {
+    const resp = await fetch(`py/${f}`);
+    if (!resp.ok) throw new Error(`无法加载 py/${f}`);
+    pyodide.FS.writeFile(`/app/${f}`, await resp.text());
+  }));
+  pyodide.runPython("import sys; sys.path.insert(0, '/app')");
+  typesetText = pyodide.pyimport('web_main').typeset_text;
+
+  // Fonts: the one chosen last time, else the first one.
+  try {
+    const resp = await fetch('fonts/fonts.json');
+    if (resp.ok) fonts = await resp.json();
+  } catch (e) { /* no bundled fonts */ }
+  if (!fonts.length) {
+    setStatus('网站没有提供字体，请用 build.sh 打包字体', true);
+    return;
+  }
+  for (const f of fonts) $('font').add(new Option(f.name, f.file));
+  $('font').disabled = false;
+  const last = getPref('font');
+  await selectFont(fonts.some((f) => f.file === last) ? last : fonts[0].file);
+}
+main().catch((e) => setStatus(`加载失败：${e.message || e}`, true));
+</script>
+</body>
+</html>

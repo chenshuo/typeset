@@ -348,6 +348,8 @@ def typeset_paragraphs(paragraphs, line_width, style: Style, hyphen_lang='en_US'
   for i, text in enumerate(paragraphs):
     items, breaks = break_lines(text, line_width, style, hyphen_lang)
     assert breaks, text  # split_paragraphs() drops blank paragraphs
+    if i > 0 or simple.TRACE:
+      print()  # after the previous paragraph or the trace
     print(f'Paragraph {i + 1} of {len(paragraphs)}')
     result.append(show_results(items, line_width, breaks))
   return result
