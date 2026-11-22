@@ -212,7 +212,7 @@ def break_lines(text, line_width, params: Params, hyphen_lang='en_US'):
                            final_pass=True)
 
 
-def txt2img(text, size, text_width_em, runt_penalty, output, font, hyphen_lang):
+def render_paragraph(text, size, text_width_em, runt_penalty, output, font, hyphen_lang):
     hb_font = get_hb_font(font, size)
     params = Params(hb_font, size, runt_penalty=runt_penalty)
 
@@ -314,8 +314,8 @@ def main():
         text = args.text
 
     font = resolve_font(ap, args)
-    txt2img(text, args.size, args.text_width, args.runt_penalty, args.output, font,
-            args.hyphen_lang)
+    render_paragraph(text, args.size, args.text_width, args.runt_penalty, args.output,
+                     font, args.hyphen_lang)
 
 
 if __name__ == '__main__':

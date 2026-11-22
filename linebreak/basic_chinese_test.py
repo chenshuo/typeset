@@ -19,7 +19,7 @@ FONT_INDEX_TC = 3
 
 TEXT5 = """子曰：“学而时习之，不亦说乎？有朋自远方来，不亦乐乎？人不知而不愠，不亦君子乎？”"""
 TEXT6 = """郦道元《水经注》记载：“沼西际山枕水，有唐叔虞祠。”"""
-
+TEXT7 = """我这时很兴奋，但不知道怎么说才好，只是说：“阿！闰土哥，——你来了？……”"""
 PUNCT_CONTEXT = 3
 
 
@@ -216,3 +216,8 @@ def test_basic6():
 
   l = Layout(FONT, 12, indent=2, punct=PUNCT_CONTEXT)
   run(12, 13, text, 'basic_13ctx2.pdf', layout=l)
+
+def test_basic7():
+  print('|'.join(line_break_units(TEXT7)))
+  l = Layout(FONT, 12, indent=2, punct=PUNCT_CONTEXT)
+  run(12, 12, TEXT7, 'basic_lx.pdf', layout=l, trace=1)
