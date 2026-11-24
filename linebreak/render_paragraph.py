@@ -10,8 +10,8 @@ from functools import partial
 
 from common import Box, Glue, Penalty, HYPHEN_PENALTY
 import font_util, util
-import basic
-from basic import line_break, show_results
+import simple
+from simple import line_break, show_results
 from render_lib import FREETYPE_SCALE, render
 
 import pyphen
@@ -168,20 +168,37 @@ def get_items(text, p: Params):
   return items
 
 
-def break_lines(text, line_width, params: Params, hyphen_lang='en_US'):
-  """Breaks text into lines of line_width, in up to three passes like TeX.
+def break_lines(text, line_widths, params: Params, hyphen_lang='en_US', looseness=0):
+  """Breaks text into lines, in up to three passes like TeX.
 
   1. Items from params as given (normally no hyphenation), rho = 1.0.
   2. Items with hyphenation in hyphen_lang, rho = 1.5.
   3. Final pass on the same items, rho = 2, overfull lines allowed.
 
+  line_widths is one width for all lines, or a list with the widths of the
+  first lines, the last one being used for all further lines.
+
+  With looseness != 0, a pass succeeds only if it changes the number of lines
+  by exactly that much, compared to the optimum of the same pass.  The final
+  pass gets as close as it can.
+
   Returns (items, breaks).  The items are those of the pass that succeeded,
   breaks index into them.  Returns ([], []) for empty text.
   """
   def may_trace(items):
-    if basic.TRACE:
+    if simple.TRACE:
       for i, it in enumerate(items):
         print('%3d' % i, it)
+
+  def try_pass(items, **kwargs):
+    breaks = line_break(items, line_widths, **kwargs)
+    if looseness == 0:
+      return breaks
+    loose = line_break(items, line_widths, looseness=looseness, **kwargs)
+    if len(loose) - len(breaks) == looseness or kwargs.get('final_pass'):
+      return loose
+    raise RuntimeError(f'Looseness {looseness} not reached, got '
+                       f'{len(loose) - len(breaks)}.')
 
   # First pass, with rho = 1.0
   items = get_items(text, params)
@@ -189,39 +206,52 @@ def break_lines(text, line_width, params: Params, hyphen_lang='en_US'):
     return items, []
   may_trace(items)
   try:
-    return items, line_break(items, line_width)
+    return items, try_pass(items)
   except RuntimeError as ex:
-    if basic.TRACE:
+    if simple.TRACE:
       print(ex)
 
   # Second pass, enable hyphenation
   items = get_items(text, replace(params, hyphen_lang=hyphen_lang))
-  if basic.TRACE:
+  if simple.TRACE:
     print('second pass')
     may_trace(items)
   try:
-    return items, line_break(items, line_width, max_stretch_ratio=1.5)
+    return items, try_pass(items, max_stretch_ratio=1.5)
   except RuntimeError as ex:
-    if basic.TRACE:
+    if simple.TRACE:
       print(ex)
 
   # Final pass, rho = 2.0 and set final_pass=True
-  if basic.TRACE:
+  if simple.TRACE:
     print('final pass')
-  return items, line_break(items, line_width, max_stretch_ratio=2.0,
-                           final_pass=True)
+  return items, try_pass(items, max_stretch_ratio=2.0, final_pass=True)
 
 
-def render_paragraph(text, size, text_width_em, runt_penalty, output, font, hyphen_lang):
+def render_paragraph(text, size, text_widths_em, runt_penalty, output, font, hyphen_lang,
+                     looseness=0):
     hb_font = get_hb_font(font, size)
     params = Params(hb_font, size, runt_penalty=runt_penalty)
 
-    line_width = size * text_width_em
-    items, breaks = break_lines(text, line_width, params, hyphen_lang)
+    # One width per line; the last one is used for all further lines.
+    line_widths = [size * w for w in text_widths_em]
+    items, breaks = break_lines(text, line_widths, params, hyphen_lang, looseness)
     assert breaks
 
-    lines = show_results(items, line_width, breaks)
-    render(font.path, size, lines, line_width, output, font_index=font.index)
+    lines = show_results(items, line_widths, breaks)
+    # Lines are set flush left, in an image as wide as the widest line.
+    render(font.path, size, lines, max(line_widths), output, font_index=font.index)
+
+
+def parse_text_widths(arg: str) -> list[float]:
+    """'16,16,22' -> [16.0, 16.0, 22.0], for --text_widths."""
+    try:
+        widths = [float(w) for w in arg.split(',')]
+    except ValueError:
+        raise argparse.ArgumentTypeError(f"expected numbers separated by commas: {arg!r}")
+    if not all(w > 0 for w in widths):
+        raise argparse.ArgumentTypeError(f"text widths must be positive: {arg!r}")
+    return widths
 
 
 def resolve_font(ap, args) -> font_util.FontInfo:
@@ -250,7 +280,9 @@ EXAMPLES = """\
 examples:
   %(prog)s                                  # built-in sample -> output.pdf
   %(prog)s input.txt --output out.png
-  %(prog)s '学而时习之，不亦说乎？' --text_width 10
+  %(prog)s '学而时习之，不亦说乎？' --text_widths 10
+  %(prog)s --text_widths 16,16,16,22        # three lines of 16 em, then 22 em
+  %(prog)s --looseness -1                   # one line fewer, if possible
   %(prog)s --font 'Noto Serif CJK TC' --size 16
   %(prog)s --font_file my.ttc --font_index 2
   %(prog)s --font_list
@@ -283,9 +315,15 @@ def main():
     g = ap.add_argument_group("layout")
     g.add_argument("--size", metavar="PX", type=float, default=12.0,
                    help="font size in px (default: %(default)s)")
-    g.add_argument("--text_width", metavar="EM", type=float, default=22.0,
-                   help="line width in em, i.e. number of CJK characters per line "
-                        "(default: %(default)s)")
+    g.add_argument("--text_widths", metavar="EM[,EM...]", type=parse_text_widths,
+                   default=[22.0],
+                   help="line width in em, i.e. number of CJK characters per line; "
+                        "or the widths of the first lines separated by commas, the last "
+                        "one being used for all further lines, e.g. 16,16,22 to make "
+                        "room for a figure (default: 22)")
+    g.add_argument("--looseness", metavar="N", type=int, default=0,
+                   help="make the paragraph N lines longer (N > 0) or shorter (N < 0) "
+                        "than the optimum, as far as possible (default: %(default)s)")
     g.add_argument("--hyphen_lang", metavar="LANG", default="en_US",
                    help="language for hyphenating Latin words, tried only when no good "
                         "breaks are found without it; '' to disable (default: %(default)s)")
@@ -305,7 +343,7 @@ def main():
       font_util.print_font_list('zh-cn')
       return
     if args.trace:
-        basic.TRACE = True
+        simple.TRACE = True
     text = SAMPLE_TEXT
     if args.text:
       if os.path.exists(args.text):
@@ -314,8 +352,8 @@ def main():
         text = args.text
 
     font = resolve_font(ap, args)
-    render_paragraph(text, args.size, args.text_width, args.runt_penalty, args.output,
-                     font, args.hyphen_lang)
+    render_paragraph(text, args.size, args.text_widths, args.runt_penalty, args.output,
+                     font, args.hyphen_lang, args.looseness)
 
 
 if __name__ == '__main__':

@@ -1,3 +1,4 @@
+import argparse
 import math
 import unicodedata
 
@@ -442,6 +443,78 @@ def test_break_lines_hyphen_lang(passes):
 def test_break_lines_empty_text(passes):
   assert break_lines('', 10 * SIZE, make_params(indent=2)) == ([], [])
   assert passes == []
+
+
+def natural_widths(items, breaks):
+  return [natural_width(items[b.start:b.end]) for b in breaks]
+
+
+def test_break_lines_line_widths(passes):
+  # Two lines of 10em, then 14em.
+  line_widths = [10 * SIZE, 10 * SIZE, 14 * SIZE]
+  items, breaks = break_lines(TEXT1, line_widths, make_params(indent=2))
+  assert passes == [FIRST_PASS]
+  assert lines_of(items, breaks)[:2] == ['　　臣本布衣，躬耕于', '南阳，苟全性命于乱']
+  # The first two lines are set in 10em, the others in 14em.
+  widths = natural_widths(items, breaks)
+  assert all(w < 12 * SIZE for w in widths[:2])
+  assert all(w > 12 * SIZE for w in widths[2:-1])
+  assert all(-1 <= b.ratio <= 1 for b in breaks)
+  # The same breaks as with the widths written out for every line.
+  assert break_lines(TEXT1, line_widths + [14 * SIZE] * 9, make_params(indent=2)) == (items, breaks)
+
+
+def test_break_lines_looseness_first_pass(passes):
+  items, breaks = break_lines(TEXT1, 14 * SIZE, make_params())
+  assert lines_of(items, breaks)[-1] == '驰。'
+  assert len(breaks) == 6
+  del passes[:]
+
+  # Each pass sets the paragraph twice, to know the optimum number of lines.
+  items, breaks = break_lines(TEXT1, 14 * SIZE, make_params(), looseness=-1)
+  assert passes == [FIRST_PASS, {'looseness': -1}]
+  assert len(breaks) == 5
+  assert lines_of(items, breaks)[-1] == '事，由是感激，遂许先帝以驱驰。'
+  assert all(-1 <= b.ratio <= 1 for b in breaks)
+
+
+def test_break_lines_looseness_second_pass(passes):
+  # A sixth line needs r > 1.
+  items, breaks = break_lines(TEXT1, 15 * SIZE, make_params(), looseness=1)
+  assert passes == [FIRST_PASS, {'looseness': 1},
+                    SECOND_PASS, {'looseness': 1, **SECOND_PASS}]
+  assert len(breaks) == 6
+  assert 1 < max(b.ratio for b in breaks) <= 1.5
+
+
+def test_break_lines_looseness_final_pass(passes):
+  items, breaks = break_lines(TEXT1, 16 * SIZE, make_params(), looseness=1)
+  assert passes == [FIRST_PASS, {'looseness': 1},
+                    SECOND_PASS, {'looseness': 1, **SECOND_PASS},
+                    FINAL_PASS, {'looseness': 1, **FINAL_PASS}]
+  assert len(breaks) == 6
+  assert 1.5 < max(b.ratio for b in breaks) <= 2
+
+
+def test_break_lines_looseness_out_of_reach(passes):
+  # No tolerance sets these four lines of 21em in five: the final pass gets
+  # as close as it can, which is the optimum.
+  expected = break_lines(TEXT1, 21 * SIZE, make_params())
+  del passes[:]
+  items, breaks = break_lines(TEXT1, 21 * SIZE, make_params(), looseness=1)
+  assert len(passes) == 6
+  assert len(breaks) == 4
+  assert lines_of(items, breaks) == lines_of(*expected)
+
+
+def test_parse_text_widths():
+  parse = render_paragraph.parse_text_widths
+  assert parse('16') == [16]
+  assert parse('16,16,18.5') == [16, 16, 18.5]
+  assert parse(' 16, 18 ') == [16, 18]
+  for bad in ('', '16,', 'wide', '16;18', '0', '16,-2'):
+    with pytest.raises(argparse.ArgumentTypeError):
+      parse(bad)
 
 
 # ------------------------------------------------- segmentation (injected)

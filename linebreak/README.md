@@ -16,6 +16,9 @@ Files
 * `basic.py` implements a basic version of Knuth-Plass, supporting Box, Glue, and Penalty.
    No double hyphen demerits, no fit classes, no looseness, etc.
     *  `render_basic.py` reproduces the result of Figure 3 in Knuth-Plass 1981 paper.
+* `simple.py` extends `basic.py` for Chinese text: glue and penalties after a break are discarded,
+   line widths may vary from line to line, and looseness is supported. Ties go to the later breakpoint.
+   Still no double hyphen demerits or fit classes.
 
 ![](minimal_chinese_demo.png)
 
