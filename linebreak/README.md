@@ -19,6 +19,8 @@ Files
 * `simple.py` extends `basic.py` for Chinese text: glue and penalties after a break are discarded,
    line widths may vary from line to line, and looseness is supported. Ties go to the later breakpoint.
    Still no double hyphen demerits or fit classes.
+* `full.py` follows "The Algorithm Itself" of the paper: flagged penalties (double hyphen demerits),
+   fitness classes, varying line widths and looseness. A draft, without the final pass of `basic.py`.
 
 ![](minimal_chinese_demo.png)
 
