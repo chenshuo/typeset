@@ -1,6 +1,7 @@
 """Full Knuth-Plass line breaking algorithm, following "The Algorithm Itself"
 of the 1981 paper: flagged penalties, fitness classes, varying line widths and
-looseness.  Draft prototype built on top of basic.py.
+looseness.  Like basic.py, it has a final pass that sets an overfull line
+instead of giving up.
 """
 
 import math
@@ -61,7 +62,9 @@ def cum_after(items, i, cum) -> Glue:
 
 
 def line_break(items, line_widths, max_stretch_ratio=1.0,
-               looseness=0) -> List[LineBreakResult]:
+               looseness=0, final_pass=False) -> List[LineBreakResult]:
+  # final_pass: like TeX's final pass, force an overfull line instead of
+  # raising an error when the active list is about to become empty.
   assert isinstance(items[-1], Penalty) and items[-1].value == EJECT_PENALTY, \
       "Paragraph must end with Penalty.EJECT."
   if not isinstance(line_widths, (list, tuple)):
@@ -87,7 +90,8 @@ def line_break(items, line_widths, max_stretch_ratio=1.0,
       is_break = item.value < INF_PENALTY
 
     if is_break:
-      active = _try_break(active, cum, items, i, line_widths, j0, max_stretch_ratio)
+      active = _try_break(active, cum, items, i, line_widths, j0, max_stretch_ratio,
+                          final_pass)
       if not active:
         raise RuntimeError(f"No feasible breakpoints found at {i}.")
       max_active = max(max_active, len(active))
@@ -141,7 +145,8 @@ def _choose_looseness(active, best, looseness):
   return best
 
 
-def _try_break(active, cum, items, i, line_widths, j0, max_stretch_ratio):
+def _try_break(active, cum, items, i, line_widths, j0, max_stretch_ratio,
+               final_pass=False):
   item = items[i]
   penalty, hyphen_width = 0, 0
   if isinstance(item, Penalty):
@@ -195,6 +200,27 @@ def _try_break(active, cum, items, i, line_widths, j0, max_stretch_ratio):
     least = min(t.total_demerits for (l, _), t in best.items() if l == line)
     if s.total_demerits <= least + ADJ_DEMERITS:
       survivors.append(s)
+
+  # On the final pass, never lose all active nodes (tex.web §854): break
+  # here anyway, giving an overfull line with "artificial_demerits", i.e.
+  # demerits 0, without alpha or gamma.  The active list is ordered by
+  # position, so the last node is the latest possible start, the least
+  # overfull line.  If several nodes are there, for different line numbers
+  # or fitness classes, take the best one.
+  if final_pass and not survivors:
+    last = [a for a in active if a.position == active[-1].position]
+    a = min(reversed(last), key=lambda n: n.total_demerits)
+    line = a.line + 1
+    r = ratio(line_widths[min(line, len(line_widths)) - 1],
+              total_width=cum.width - a.cum_width + hyphen_width,
+              total_stretch=cum.stretch - a.cum_stretch,
+              total_shrink=cum.shrink - a.cum_shrink)
+    survivors.append(Breakpoint(position=i, line=line, fitness=fitness_class(r),
+                                cum_width=after.width,
+                                cum_stretch=after.stretch,
+                                cum_shrink=after.shrink,
+                                total_demerits=a.total_demerits,
+                                ratio=r, demerits=0, previous=a))
 
   return survivors
 

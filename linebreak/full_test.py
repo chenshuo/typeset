@@ -615,6 +615,9 @@ def check_against_reference(items, line_widths, max_stretch_ratio, looseness=0):
   assert full.line_break.total_demerits == totals[k]
   if looseness != 0:
     assert len(breaks) == k
+  # The final pass is not needed, and changes nothing.
+  assert line_break(items, line_widths, max_stretch_ratio, looseness,
+                    final_pass=True) == breaks
   return True
 
 
@@ -690,6 +693,99 @@ def test_random_paragraphs_are_optimal():
 
 def test_random_paragraphs_with_looseness_are_optimal():
   check_random_paragraphs(1982, [-2, -1, 1, 2])
+
+
+# ---------------------------------------------------------------------------
+# Final pass: overfull lines
+# ---------------------------------------------------------------------------
+
+def overfull_paragraph():
+  g = Glue(2, 2, 1)
+  return paragraph(Box(10, 'a'), g, Box(8, 'b'), g, Box(50, 'toolong'), g, Box(10, 'c'))
+
+
+def test_overfull_raises_without_final_pass():
+  with pytest.raises(RuntimeError):
+    line_break(overfull_paragraph(), 20)
+
+
+def test_final_pass_sets_overfull_line():
+  items = overfull_paragraph()
+  breaks = line_break(items, 20, final_pass=True)
+  assert line_ends(items, breaks)[:2] == ['b', 'toolong']
+  # The overfull line is on its own, with zero ("artificial") demerits.
+  assert [(b.start, b.end) for b in breaks] == [(0, 3), (4, 5), (6, 9)]
+  assert [b.ratio for b in breaks] == [0, -math.inf, 0]
+  # It is a tight line, next to two normal ones: no gamma.
+  assert fitness_classes(breaks) == [1, 0, 1]
+  assert [b.demerits for b in breaks] == [100, 0, 100]
+  assert full.line_break.total_demerits == 200
+
+
+def test_final_pass_does_not_change_feasible_paragraph():
+  items = sample_paragraph()
+  assert line_break(items, 500, final_pass=True) == line_break(items, 500)
+  line_widths = [390, 390, 390, 500]
+  assert (line_break(items, line_widths, looseness=1, final_pass=True)
+          == line_break(items, line_widths, looseness=1))
+
+
+def test_final_pass_with_line_widths():
+  items = overfull_paragraph()
+  # A second line of 50 units is just right for the long word.
+  breaks = line_break(items, [20, 50, 20])
+  assert line_ends(items, breaks)[:2] == ['b', 'toolong']
+  assert [b.ratio for b in breaks] == [0, 0, 0]
+
+  # A first line of 50 units is too wide for 'a b' (r = 15) and too narrow
+  # for 'a b toolong', 72 units with 2 units of shrink.
+  with pytest.raises(RuntimeError):
+    line_break(items, [50, 20])
+  breaks = line_break(items, [50, 20], final_pass=True)
+  assert boxes_per_line(items, breaks) == [3, 1]
+  assert [b.ratio for b in breaks] == [-11, 0]
+  assert [b.demerits for b in breaks] == [0, 100]
+
+
+def test_final_pass_with_looseness():
+  items = overfull_paragraph()
+  expected = line_break(items, 20, final_pass=True)
+  for looseness in (-1, 1):
+    assert line_break(items, 20, looseness=looseness, final_pass=True) == expected
+
+
+def test_overfull_line_is_not_charged_alpha_or_gamma():
+  # 'toolong-' is overfull and ends with a hyphen, right after 'a-'.  The
+  # line after it is very loose (r = 2), two classes away from tight.
+  hyphen = Penalty(50, 4, '-', is_hyphen=True)
+  items = paragraph(Box(16, 'a'), hyphen, Box(50, 'toolong'), hyphen,
+                    Box(8, 'b'), Glue(0, 2, 0), Box(8, 'c'), Glue(0, 0, 0), Box(5, 'd'))
+  breaks = line_break(items, 20, max_stretch_ratio=2, final_pass=True)
+  assert line_ends(items, breaks)[:3] == ['a-', 'toolong-', 'c']
+  assert [b.ratio for b in breaks] == [0, -math.inf, 2, 0]
+  assert fitness_classes(breaks) == [1, 0, 3, 1]
+  # Alpha and gamma are not added to the overfull line itself, but the
+  # lines after it are charged as usual.
+  assert [b.demerits for b in breaks] == [
+      2600, 0, (10 + 800) ** 2 + GAMMA, 100 + GAMMA]
+
+
+def test_random_paragraphs_final_pass_never_fails():
+  rng = random.Random(1983)
+  overfull = 0
+  for _ in range(300):
+    items = random_paragraph(rng)
+    line_widths = [rng.randint(20, 120) for _ in range(rng.choice([1, 2, 3]))]
+    looseness = rng.choice([-1, 0, 0, 1])
+    breaks = line_break(items, line_widths, 2, looseness, final_pass=True)
+    assert [b.line for b in breaks] == list(range(1, len(breaks) + 1))
+    assert breaks[0].start == 0
+    assert breaks[-1].end == len(items) - 1
+    for prev, cur in zip(breaks, breaks[1:]):
+      assert cur.start > prev.end
+      assert not any(isinstance(x, Box) for x in items[prev.end:cur.start])
+    overfull += any(b.ratio < -1 for b in breaks)
+  assert overfull > 50
 
 
 if __name__ == '__main__':
