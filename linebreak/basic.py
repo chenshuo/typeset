@@ -74,6 +74,13 @@ def line_break(items, line_width, max_stretch_ratio=1.0,
           print('%3d' % i, items[i-1].text, active[-1])
         else:
           print('%3d' % i, items[i-1].text)
+      if penalty <= EJECT_PENALTY:
+        # No line spans a forced break, so restart the running sums.  The
+        # line before it usually ends with infinite glue, which would turn
+        # the stretch of every later line into inf - inf = nan.
+        cum = Glue(0, 0, 0)
+        for a in active:
+          a.cum_width = a.cum_stretch = a.cum_shrink = 0
 
     # Update running sums
     if isinstance(item, Box):

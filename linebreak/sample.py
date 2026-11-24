@@ -65,7 +65,7 @@ def get_sample_paragraph(hyphenate=False):
         for part in hyphenation[word][:-1]:
           part_width = sum(letter_widths[c] for c in part)
           items.append(Box(part_width, part))
-          items.append(Penalty(50, letter_widths['-'], '-'))  # hyphen penalty
+          items.append(Penalty(50, letter_widths['-'], '-', is_hyphen=True))  # flagged
         part = hyphenation[word][-1]
         part_width = sum(letter_widths[c] for c in part)
         items.append(Box(part_width, part))
