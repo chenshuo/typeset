@@ -233,9 +233,9 @@ def _try_break(active, cum, items, i, line_widths, j0, max_stretch_ratio,
 
 
 def main():
-  """Sets the sample text of render_paragraph.py in a few ways."""
+  """Sets the sample text of render_simple.py in a few ways."""
   import font_util
-  from render_paragraph import Params, SAMPLE_TEXT, get_hb_font, get_items
+  from render_simple import Params, SAMPLE_TEXT, get_hb_font, get_items
 
   size = 12
   font = font_util.default_cjk_font()

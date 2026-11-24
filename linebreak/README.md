@@ -19,7 +19,7 @@ Files
 * `simple.py` extends `basic.py` for Chinese text: glue and penalties after a break are discarded,
    line widths may vary from line to line, and looseness is supported. Ties go to the later breakpoint.
    Still no double hyphen demerits or fit classes.
-    * `render_paragraph.py` renders a paragraph of Chinese or mixed Chinese/Latin text into a PDF or PNG,
+    * `render_simple.py` renders a paragraph of Chinese or mixed Chinese/Latin text into a PDF or PNG,
       with `--text_widths` and `--looseness`.
 * `full.py` follows "The Algorithm Itself" of the paper: flagged penalties (double hyphen demerits),
    fitness classes, varying line widths and looseness.
@@ -59,7 +59,7 @@ full.line_break(items, line_widths, max_stretch_ratio=1.0, looseness=0, final_pa
 | Tracing | `basic.TRACE` | `simple.TRACE` | no |
 | Statistics | no | no | `line_break.max_active`, `line_break.total_demerits` |
 | Tests | `basic_test.py` | `simple_test.py` | `full_test.py` |
-| Used by | `render_basic.py` | `render_paragraph.py` | |
+| Used by | `render_basic.py` | `render_simple.py` | |
 
 When they agree:
 

@@ -15,8 +15,8 @@ from simple import line_break
 from common import (Box, Glue, Penalty, INF_BAD, INF_PENALTY, EJECT_PENALTY,
                     ratio, badness, demerits)
 from sample import get_sample_paragraph
-from render_paragraph import get_items, SAMPLE_TEXT
-from render_paragraph_test import make_params, lines_of, SIZE, TEXT1, TEXT2, TEXT3
+from render_simple import get_items, SAMPLE_TEXT
+from render_simple_test import make_params, lines_of, SIZE, TEXT1, TEXT2, TEXT3
 
 
 @pytest.fixture(autouse=True)
@@ -707,7 +707,7 @@ def test_random_paragraphs_final_pass_never_fails():
 
 
 # ---------------------------------------------------------------------------
-# Chinese text, with the items of render_paragraph.py
+# Chinese text, with the items of render_simple.py
 # ---------------------------------------------------------------------------
 
 def em(x):

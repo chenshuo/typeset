@@ -119,7 +119,8 @@ def get_items(text, p: Params):
     return items
 
   if p.indent > 0:
-    items.append(Box(em(p.indent), '　' * p.indent))
+    # The text is for display only; the indent need not be a whole number.
+    items.append(Box(em(p.indent), '　' * round(p.indent)))
 
   for i, seg in enumerate(units):
     word = seg.rstrip(' ')
@@ -229,9 +230,9 @@ def break_lines(text, line_widths, params: Params, hyphen_lang='en_US', loosenes
 
 
 def render_paragraph(text, size, text_widths_em, runt_penalty, output, font, hyphen_lang,
-                     looseness=0):
+                     looseness=0, indent=Params.indent):
     hb_font = get_hb_font(font, size)
-    params = Params(hb_font, size, runt_penalty=runt_penalty)
+    params = Params(hb_font, size, runt_penalty=runt_penalty, indent=indent)
 
     # One width per line; the last one is used for all further lines.
     line_widths = [size * w for w in text_widths_em]
@@ -244,9 +245,10 @@ def render_paragraph(text, size, text_widths_em, runt_penalty, output, font, hyp
 
 
 def parse_text_widths(arg: str) -> list[float]:
-    """'16,16,22' -> [16.0, 16.0, 22.0], for --text_widths."""
+    """'16,16,22' -> [16.0, 16.0, 22.0], for --text_widths.  One trailing
+    comma is allowed: '16,16,22,'."""
     try:
-        widths = [float(w) for w in arg.split(',')]
+        widths = [float(w) for w in arg.strip().removesuffix(',').split(',')]
     except ValueError:
         raise argparse.ArgumentTypeError(f"expected numbers separated by commas: {arg!r}")
     if not all(w > 0 for w in widths):
@@ -282,6 +284,7 @@ examples:
   %(prog)s input.txt --output out.png
   %(prog)s '学而时习之，不亦说乎？' --text_widths 10
   %(prog)s --text_widths 16,16,16,22        # three lines of 16 em, then 22 em
+  %(prog)s --indent 2                       # indent the first line by 2 em
   %(prog)s --looseness -1                   # one line fewer, if possible
   %(prog)s --font 'Noto Serif CJK TC' --size 16
   %(prog)s --font_file my.ttc --font_index 2
@@ -321,6 +324,9 @@ def main():
                         "or the widths of the first lines separated by commas, the last "
                         "one being used for all further lines, e.g. 16,16,22 to make "
                         "room for a figure (default: 22)")
+    g.add_argument("--indent", metavar="EM", type=float, default=Params.indent,
+                   help="indent of the first line in em, e.g. 2 for Chinese text "
+                        "(default: %(default)s)")
     g.add_argument("--looseness", metavar="N", type=int, default=0,
                    help="make the paragraph N lines longer (N > 0) or shorter (N < 0) "
                         "than the optimum, as far as possible (default: %(default)s)")
@@ -351,9 +357,12 @@ def main():
       else:
         text = args.text
 
+    if args.indent < 0:
+        ap.error("--indent must not be negative")
+
     font = resolve_font(ap, args)
     render_paragraph(text, args.size, args.text_widths, args.runt_penalty, args.output,
-                     font, args.hyphen_lang, args.looseness)
+                     font, args.hyphen_lang, args.looseness, args.indent)
 
 
 if __name__ == '__main__':

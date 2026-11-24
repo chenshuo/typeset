@@ -7,8 +7,8 @@ import pytest
 from common import Box, Glue, Penalty, HYPHEN_PENALTY, INF_PENALTY
 import font_util
 import util
-import render_paragraph
-from render_paragraph import (
+import render_simple
+from render_simple import (
     is_latin_word, may_hyphenate, get_items, break_lines, get_hb_font, Params,
     SAMPLE_TEXT, STOP_PUNCTS, OPEN_PUNCTS, CLOSE_PUNCTS, CJK_PUNCTS)
 
@@ -164,6 +164,11 @@ def test_indent():
 
   items = get_items('中文', make_params(indent=0))
   assert items[0].text == '中'
+
+  # The indent need not be a whole number of em.
+  items = get_items('中文', make_params(indent=1.5))
+  assert items[0].width == 1.5 * SIZE
+  assert items[1].text == '中'
 
 
 def test_paragraph_end():
@@ -376,11 +381,11 @@ def test_runt_penalty():
 def passes(monkeypatch):
   """Records the keyword args of each line_break() call in break_lines()."""
   calls = []
-  line_break = render_paragraph.line_break
+  line_break = render_simple.line_break
   def recorder(items, line_width, **kwargs):
     calls.append(kwargs)
     return line_break(items, line_width, **kwargs)
-  monkeypatch.setattr(render_paragraph, 'line_break', recorder)
+  monkeypatch.setattr(render_simple, 'line_break', recorder)
   return calls
 
 
@@ -508,11 +513,15 @@ def test_break_lines_looseness_out_of_reach(passes):
 
 
 def test_parse_text_widths():
-  parse = render_paragraph.parse_text_widths
+  parse = render_simple.parse_text_widths
   assert parse('16') == [16]
   assert parse('16,16,18.5') == [16, 16, 18.5]
   assert parse(' 16, 18 ') == [16, 18]
-  for bad in ('', '16,', 'wide', '16;18', '0', '16,-2'):
+  # A trailing comma is fine, but only one.
+  assert parse('16,') == [16]
+  assert parse('16,16,22,') == [16, 16, 22]
+  assert parse('16, 18, ') == [16, 18]
+  for bad in ('', ',', '16,,', ',16', '16,,18', 'wide', '16;18', '0', '16,-2'):
     with pytest.raises(argparse.ArgumentTypeError):
       parse(bad)
 
@@ -628,7 +637,7 @@ def test_real_font_halt(hb_font):
 @pytest.mark.parametrize('text', [SAMPLE_TEXT, TEXT1, TEXT2, TEXT3, TEXT4],
                          ids=['TEXT', 'TEXT1', 'TEXT2', 'TEXT3', 'TEXT4'])
 def test_real_font_items(hb_font, text):
-  items = get_items(text, Params(hb_font, SIZE))
+  items = get_items(text, Params(hb_font, SIZE, indent=2))
   assert items[-3:] == [Penalty.NO_BREAK, Glue.INF, Penalty.EJECT]
   boxes = [it for it in items if isinstance(it, Box)]
   assert ''.join(b.text for b in boxes[1:]) == text.replace(' ', '')
