@@ -21,6 +21,14 @@ Files
    Still no double hyphen demerits or fit classes.
     * `render_simple.py` renders a paragraph of Chinese or mixed Chinese/Latin text into a PDF or PNG,
       with `--text_widths` and `--looseness`.
+    * `typeset.py` typesets Chinese or mixed Chinese/Latin text, split into paragraphs at blank lines,
+      into a PDF or PNG with `simple.py`. It sets CJK punctuation half width with the `halt` feature,
+      the other half being glue, adds space between CJK and Latin text, breaks lines at UAX #14 units
+      (with [uniseg](https://pypi.org/project/uniseg/)) but never before a closing or stop punctuation,
+      and has a first-line indent, extra space between paragraphs, and a penalty for a lone last word.
+      Like TeX, it tries up to three passes: as given, then with Latin words hyphenated
+      (with [pyphen](https://pypi.org/project/pyphen/)), then a final pass. Tests are in `typeset_test.py`.
+    * [`web/`](web/) runs `typeset.py` in the browser, at <https://txt2png.chenshuo.com/>.
 * `full.py` follows "The Algorithm Itself" of the paper: flagged penalties (double hyphen demerits),
    fitness classes, varying line widths and looseness.
 
@@ -59,7 +67,7 @@ full.line_break(items, line_widths, max_stretch_ratio=1.0, looseness=0, final_pa
 | Tracing | `basic.TRACE` | `simple.TRACE` | no |
 | Statistics | no | no | `line_break.max_active`, `line_break.total_demerits` |
 | Tests | `basic_test.py` | `simple_test.py` | `full_test.py` |
-| Used by | `render_basic.py` | `render_simple.py` | |
+| Used by | `render_basic.py` | `render_simple.py`, `typeset.py` | |
 
 When they agree:
 

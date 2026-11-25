@@ -7,6 +7,11 @@
     * 复刻 1979 年王选教授研制的华光I型汉字激光照排系统排出的[第一张 8 开报纸样张](wangxuan1979.pdf)
 * [TikZ 绘制中学几何题](tikz-notes.ipynb)
 
+## 断行算法
+
+* [Knuth-Plass 断行算法的 Python 实现](linebreak/)，以及用它排版中文或中英混排段落的 `typeset.py`
+* [在线段落排版](https://txt2png.chenshuo.com/)：`typeset.py` 的网页版，完全在浏览器里运行（[源代码](linebreak/web/)）
+
 ***
 
 以下说明由网友 Frank Dai (https://github.com/soulmachine) 编写。
