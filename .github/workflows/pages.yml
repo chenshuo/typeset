@@ -1,0 +1,61 @@
+# Builds linebreak/web/site with linebreak/web/build.sh and deploys it to
+# GitHub Pages, at txt2png.chenshuo.com.
+name: Deploy linebreak/web to Pages
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - 'linebreak/*.py'
+      - 'linebreak/web/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# One deployment at a time; a newer push cancels a queued one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      # build.sh reads font names with fc-scan.
+      - run: sudo apt-get install -y --no-install-recommends fontconfig
+
+      # The fonts (about 50 MB) and wheels that build.sh downloads, keyed on
+      # the lists of them.
+      - uses: actions/cache@v4
+        with:
+          path: |
+            linebreak/web/.fonts
+            linebreak/web/.wheels
+          key: web-${{ hashFiles('linebreak/web/fonts.txt', 'linebreak/web/build.sh') }}
+          restore-keys: web-
+
+      - run: linebreak/web/build.sh
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: linebreak/web/site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
