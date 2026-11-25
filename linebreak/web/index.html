@@ -136,6 +136,7 @@ pre.error { color: var(--error); }
       <div class="toolbar">
         <button id="dl-svg" disabled>下载 SVG</button>
         <button id="dl-png" disabled>下载 PNG</button>
+        <button id="copy-png" disabled title="复制 PNG 图片，可以直接粘贴到其他程序里">复制 PNG</button>
         <button id="reset" title="恢复示例文本和所有选项的默认值">恢复默认</button>
         <span id="status">正在加载 Python 运行时……</span>
       </div>
@@ -255,7 +256,7 @@ function run() {
     $('output').innerHTML = svg;
     $('log').textContent = log;
     $('log').classList.remove('error');
-    $('dl-svg').disabled = $('dl-png').disabled = false;
+    $('dl-svg').disabled = $('dl-png').disabled = $('copy-png').disabled = false;
     setStatus(`排版用时 ${Math.round(performance.now() - t0)} ms`);
   } catch (e) {
     $('log').textContent = String(e.message || e);
@@ -314,18 +315,38 @@ function download(blob, filename) {
 $('dl-svg').addEventListener('click', () => {
   download(new Blob([lastSvg], { type: 'image/svg+xml' }), 'paragraph.svg');
 });
-$('dl-png').addEventListener('click', async () => {
+// The SVG as a PNG at 3x, for high-DPI screens and print.
+async function pngBlob() {
   const url = URL.createObjectURL(new Blob([lastSvg], { type: 'image/svg+xml' }));
-  const img = new Image();
-  img.src = url;
-  await img.decode();
-  const scale = 3;
-  const canvas = document.createElement('canvas');
-  canvas.width = img.naturalWidth * scale;
-  canvas.height = img.naturalHeight * scale;
-  canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-  URL.revokeObjectURL(url);
-  canvas.toBlob((blob) => download(blob, 'paragraph.png'), 'image/png');
+  try {
+    const img = new Image();
+    img.src = url;
+    await img.decode();
+    const scale = 3;
+    const canvas = document.createElement('canvas');
+    canvas.width = img.naturalWidth * scale;
+    canvas.height = img.naturalHeight * scale;
+    canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+    return await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+$('dl-png').addEventListener('click', async () => {
+  download(await pngBlob(), 'paragraph.png');
+});
+// The clipboard needs HTTPS or localhost.
+if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') {
+  $('copy-png').hidden = true;
+}
+$('copy-png').addEventListener('click', async () => {
+  try {
+    // A promise, not a blob: Safari allows writing only within the click.
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob() })]);
+    setStatus('已复制 PNG');
+  } catch (e) {
+    setStatus(`复制失败：${e.message || e}`, true);
+  }
 });
 
 // ---- Startup ----
