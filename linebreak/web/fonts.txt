@@ -1,0 +1,20 @@
+# Fonts for the page when web/build.sh is given no font files.  The page
+# downloads each from its URL when the user picks it, and checks its SHA-256.
+# One per line: URL SHA256 [NAME].  NAME is the name in the list, by default
+# the Chinese name in the font.  The list is in this order; the default is
+# the smallest file, the quickest to download.  Each font file must hold a single face, not a TTC.
+#
+# The URLs are jsDelivr, which allows cross-origin requests and caches for a
+# year, at a commit rather than a tag, as a tag may move.  jsDelivr serves
+# files in GitHub repositories up to 20 MB, not release assets.
+
+# https://github.com/takushun-wu/WenYuanFonts v1.110, SIL Open Font License 1.1
+https://cdn.jsdelivr.net/gh/takushun-wu/WenYuanFonts@3e2abb78495a6649c9d78969a5c03435ee47c02d/otf/WenYuanSerifSC-Regular.otf af8299d94437fe61ff87d5404ba135a8db5ce3e2f546e9686ac09dc67d47d71f
+https://cdn.jsdelivr.net/gh/takushun-wu/WenYuanFonts@3e2abb78495a6649c9d78969a5c03435ee47c02d/otf/WenYuanSansSC-Regular.otf 0bd8b23a0dbcfff01e70c66a41e31dca97267cd5507c01eae25387da005c96fc
+
+# https://github.com/daizhige-org/kaiyuan-kai v0.0.1, Arphic Public License
+https://cdn.jsdelivr.net/gh/daizhige-org/kaiyuan-kai@fc168e3ddfe08c5331d428c5abb75d8d505b16cb/kaiyuan-kai-sc.ttf 43ce859d97e139b8582fcd9bb3f0438f9937e3476761f86c268969ac2f7240fa
+
+# https://github.com/lxgw/LxgwWenKai-Lite v1.530, SIL Open Font License 1.1
+# The full LxgwWenKai is 26 MB, too large for jsDelivr.
+https://cdn.jsdelivr.net/gh/lxgw/LxgwWenKai-Lite@b712c83d98acf977bacfb7fb010207802808bda9/fonts/TTF/LXGWWenKaiLite-Regular.ttf f799a538a3355877e597a0ae04050e897932c9ae7689eb9227c2953c5dd549ea 霞鹜文楷轻便版

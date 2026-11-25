@@ -53,6 +53,8 @@ button:disabled { opacity: .5; cursor: default; }
 .paper { overflow: auto; border-radius: 6px; background: #fff; border: 1px solid var(--border); min-height: 120px; }
 .paper svg { display: block; max-width: 100%; height: auto; }
 details { margin-top: 16px; }
+.hint { font-size: 13px; color: var(--muted); margin: 4px 0 0; }
+.hint a { color: var(--accent); }
 footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--muted); font-size: 13px; }
 footer a { color: var(--accent); }
 summary { cursor: pointer; color: var(--muted); font-size: 14px; }
@@ -69,6 +71,7 @@ pre.error { color: var(--error); }
     <section class="panel">
       <label for="font">字体</label>
       <select id="font" disabled></select>
+      <p class="hint" id="font-source" hidden>字体来源：<a id="font-source-link" target="_blank" rel="noopener"></a></p>
 
       <div class="row">
         <div>
@@ -164,36 +167,57 @@ function setStatus(msg, isError = false) {
 }
 
 // ---- Fonts ----
-// The fonts bundled with the site, listed in fonts/fonts.json by build.sh.
+// The fonts listed in fonts/fonts.json by build.sh, mostly from jsDelivr.
 // Each is fetched when first chosen, as CJK fonts are 10-20 MB.
 let pyodide = null;
 let typesetText = null;
-let fonts = [];            // [{file, name}]
-const loaded = new Map();  // file -> path in the Pyodide file system
-let font = null;           // the chosen font: {file, path}
+let fonts = [];            // [{url, sha256, size, name}]
+const loaded = new Map();  // url -> path in the Pyodide file system
+let font = null;           // the chosen font: {url, path}
 let selectToken = 0;
 
 function getPref(k) { try { return localStorage.getItem(`typeset-${k}`); } catch (e) { return null; } }
 function setPref(k, v) { try { localStorage.setItem(`typeset-${k}`, v); } catch (e) { /* unavailable */ } }
 
-async function selectFont(file) {
-  const info = fonts.find((f) => f.file === file);
+async function sha256Hex(bytes) {
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+  return Array.from(digest, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+// The GitHub repository of a font from jsDelivr, or null.
+function fontSource(url) {
+  const m = url.match(/^https:\/\/cdn\.jsdelivr\.net\/gh\/([^/@]+\/[^/@]+)@/);
+  return m && `https://github.com/${m[1]}`;
+}
+
+async function selectFont(url) {
+  const info = fonts.find((f) => f.url === url);
   const token = ++selectToken;
-  let path = loaded.get(file);
+  let path = loaded.get(url);
   if (!path) {
     setStatus(`正在加载字体 ${info.name}……`);
-    const resp = await fetch(`fonts/${encodeURIComponent(file)}`);
-    if (!resp.ok) throw new Error(`无法加载字体 ${info.name}`);
+    const resp = await fetch(url);
+    if (!resp.ok) throw new Error(`无法加载字体 ${info.name}（HTTP ${resp.status}）`);
     const bytes = new Uint8Array(await resp.arrayBuffer());
+    // crypto.subtle needs HTTPS or localhost.
+    if (crypto.subtle && await sha256Hex(bytes) !== info.sha256) {
+      throw new Error(`字体 ${info.name} 的 SHA-256 不符，没有使用`);
+    }
     // Each font gets its own path, uharfbuzz.Blob caches by path.
     path = `/fonts/${loaded.size + 1}`;
     pyodide.FS.writeFile(path, bytes);
-    loaded.set(file, path);
+    loaded.set(url, path);
   }
   if (token !== selectToken) return;  // another font was chosen meanwhile
-  font = { file, path };
-  $('font').value = file;
-  setPref('font', file);
+  font = { url, path };
+  $('font').value = url;
+  setPref('font', url);
+  const source = fontSource(url);
+  $('font-source').hidden = !source;
+  if (source) {
+    $('font-source-link').href = source;
+    $('font-source-link').textContent = source.replace('https://', '');
+  }
   run();
 }
 
@@ -308,12 +332,6 @@ $('dl-png').addEventListener('click', async () => {
 async function main() {
   globalThis.hbjs = hb;
   pyodide = await loadPyodide();
-  setStatus('正在安装 pyphen 和 uniseg……');
-  await pyodide.loadPackage('micropip');
-  await pyodide.runPythonAsync(`
-import micropip
-await micropip.install(['pyphen==0.17.2', 'uniseg==0.10.1'])
-`);
   setStatus('正在加载排版代码……');
   pyodide.FS.mkdirTree('/app');
   pyodide.FS.mkdirTree('/fonts');
@@ -322,10 +340,14 @@ await micropip.install(['pyphen==0.17.2', 'uniseg==0.10.1'])
     if (!resp.ok) throw new Error(`无法加载 py/${f}`);
     pyodide.FS.writeFile(`/app/${f}`, await resp.text());
   }));
+  // uniseg and pyphen, trimmed by build.sh.
+  const vendor = await fetch('py/vendor.zip');
+  if (!vendor.ok) throw new Error('无法加载 py/vendor.zip');
+  pyodide.unpackArchive(await vendor.arrayBuffer(), 'zip', { extractDir: '/app' });
   pyodide.runPython("import sys; sys.path.insert(0, '/app')");
   typesetText = pyodide.pyimport('web_main').typeset_text;
 
-  // Fonts: the one chosen last time, else the first one.
+  // Fonts: the one chosen last time, else the smallest, the quickest to load.
   try {
     const resp = await fetch('fonts/fonts.json');
     if (resp.ok) fonts = await resp.json();
@@ -334,10 +356,11 @@ await micropip.install(['pyphen==0.17.2', 'uniseg==0.10.1'])
     setStatus('网站没有提供字体，请用 build.sh 打包字体', true);
     return;
   }
-  for (const f of fonts) $('font').add(new Option(f.name, f.file));
+  for (const f of fonts) $('font').add(new Option(f.name, f.url));
   $('font').disabled = false;
   const last = getPref('font');
-  await selectFont(fonts.some((f) => f.file === last) ? last : fonts[0].file);
+  const smallest = fonts.reduce((a, b) => (b.size < a.size ? b : a));
+  await selectFont(fonts.some((f) => f.url === last) ? last : smallest.url);
 }
 main().catch((e) => setStatus(`加载失败：${e.message || e}`, true));
 </script>
