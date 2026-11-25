@@ -41,13 +41,25 @@ def _ft_face_ptr(ft_face: freetype.Face) -> int:
 
 
 def render(font, size, lines, line_width, output, font_index=0):
+    """Renders the lines of one paragraph, see render_paragraphs()."""
+    render_paragraphs(font, size, [lines], line_width, output, font_index)
+
+
+def render_paragraphs(font, size, paragraphs, line_width, output, font_index=0,
+                      par_skip=0.0):
+    """Renders paragraphs, each a list of (ratio, items) lines, into one page.
+
+    par_skip is the extra space between paragraphs, in multiples of size.
+    """
     ft_face = freetype.Face(font, font_index)
     ft_face.set_char_size(int(size * FREETYPE_SCALE), 0, 72, 72)
     left_margin = size
     right_margin = size
     line_height = size * LINE_SKIP
     img_width = int(left_margin + line_width + right_margin)
-    img_height = int((len(lines) + 1) * line_height)
+    n_lines = sum(len(lines) for lines in paragraphs)
+    n_skips = max(len(paragraphs) - 1, 0)
+    img_height = int((n_lines + 1) * line_height + n_skips * size * par_skip)
 
     ext = os.path.splitext(output)[1].lower()
     if ext == ".pdf":
@@ -70,23 +82,26 @@ def render(font, size, lines, line_width, output, font_index=0):
 
     start = datetime.now()
     pos_y = line_height + size * (LINE_SKIP - 1.0)
-    for ratio, line in lines:
-        pos_x = left_margin
-        last_item = line[-1]
-        if isinstance(last_item, Penalty):
-            if last_item.text:  # Hyphen
-                glyph = (ft_face.get_char_index(last_item.text[0]), 0, 0)
-                line[-1] = Box(last_item.width, last_item.text, [glyph, ])
-        for it in line:
-            if isinstance(it, Box):
-                if it.glyphs:
-                    arr = (_CairoGlyph * len(it.glyphs))(*(_CairoGlyph(int(gid), x + pos_x, y + pos_y) for gid, x, y in it.glyphs))
-                    _libcairo.cairo_show_glyphs(raw_cr, arr, len(it.glyphs))
-                pos_x += it.width
-            elif isinstance(it, Glue):
-                pos_x += it.get_width(max(ratio, -1))
-        pos_y += line_height
-        # print('%.2f' % (pos_x - left_margin))
+    for i, lines in enumerate(paragraphs):
+        if i > 0:
+            pos_y += size * par_skip
+        for ratio, line in lines:
+            pos_x = left_margin
+            last_item = line[-1]
+            if isinstance(last_item, Penalty):
+                if last_item.text:  # Hyphen
+                    glyph = (ft_face.get_char_index(last_item.text[0]), 0, 0)
+                    line[-1] = Box(last_item.width, last_item.text, [glyph, ])
+            for it in line:
+                if isinstance(it, Box):
+                    if it.glyphs:
+                        arr = (_CairoGlyph * len(it.glyphs))(*(_CairoGlyph(int(gid), x + pos_x, y + pos_y) for gid, x, y in it.glyphs))
+                        _libcairo.cairo_show_glyphs(raw_cr, arr, len(it.glyphs))
+                    pos_x += it.width
+                elif isinstance(it, Glue):
+                    pos_x += it.get_width(max(ratio, -1))
+            pos_y += line_height
+            # print('%.2f' % (pos_x - left_margin))
 
     # print(datetime.now() - start)
 

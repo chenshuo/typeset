@@ -20,6 +20,7 @@ def may_hyphenate(hyphen_dict, word):
     if not hyphen_dict or len(word) < 5:
         return None
 
+    # \lefthyphenmin=2 \righthyphenmin=3 % disallow x- or -xx breaks
     n = len(word)
     return [p for p in hyphen_dict.positions(word.lower()) if 2 <= p <= n - 3]
 
