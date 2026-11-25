@@ -5,6 +5,8 @@ so it can be tested outside the browser.  The layout matches
 render_lib.render_paragraphs().
 """
 
+import re
+
 from common import Box, Glue, Penalty
 import util
 
@@ -56,13 +58,19 @@ def _num(x: float) -> str:
 
 
 def render_svg(hb_font, size, paragraphs, line_width, par_skip=0.0,
-               guides=False) -> str:
+               justify=True, fg='#000000', bg='#ffffff', guides=False) -> str:
     """Returns an SVG document for paragraphs, each a list of lines from
     basic.show_results().
 
     par_skip is the extra space between paragraphs, in multiples of size.
-    With guides, draws the left and right edges of the text block.
+    Without justify, lines are set ragged right: a line shrinks if it must,
+    as the breaks were chosen for justified lines, but never stretches.
+    fg and bg are colors in #rrggbb.  With guides, draws the left and right
+    edges of the text block.
     """
+    for color in (fg, bg):
+        if not re.fullmatch(r'#[0-9a-fA-F]{6}', color):
+            raise ValueError('not a #rrggbb color: %r' % color)
     left_margin = size
     right_margin = size
     line_height = size * LINE_SKIP
@@ -78,6 +86,9 @@ def render_svg(hb_font, size, paragraphs, line_width, par_skip=0.0,
         if i > 0:
             pos_y += size * par_skip
         for ratio, line in lines:
+            ratio = max(ratio, -1)
+            if not justify:
+                ratio = min(ratio, 0)
             pos_x = left_margin
             line = list(line)
             last_item = line[-1]
@@ -92,7 +103,7 @@ def render_svg(hb_font, size, paragraphs, line_width, par_skip=0.0,
                                     % (gid, _num(x + pos_x), _num(y + pos_y)))
                     pos_x += it.width
                 elif isinstance(it, Glue):
-                    pos_x += it.get_width(max(ratio, -1))
+                    pos_x += it.get_width(ratio)
             pos_y += line_height
 
     defs = []
@@ -104,12 +115,12 @@ def render_svg(hb_font, size, paragraphs, line_width, par_skip=0.0,
 
     out = ['<svg xmlns="http://www.w3.org/2000/svg" width="%d" height="%d" '
            'viewBox="0 0 %d %d">' % (img_width, img_height, img_width, img_height),
-           '<rect width="100%" height="100%" fill="#fff"/>']
+           '<rect width="100%%" height="100%%" fill="%s"/>' % bg]
     if guides:
         for x in (left_margin, left_margin + line_width):
             out.append('<line x1="%s" y1="0" x2="%s" y2="%d" stroke="#e0a0a0" '
                        'stroke-width="0.5"/>' % (_num(x), _num(x), img_height))
     out.append('<defs>%s</defs>' % ''.join(defs))
-    out.append('<g fill="#000">%s</g>' % ''.join(uses))
+    out.append('<g fill="%s">%s</g>' % (fg, ''.join(uses)))
     out.append('</svg>')
     return '\n'.join(out)

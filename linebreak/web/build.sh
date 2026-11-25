@@ -8,6 +8,9 @@
 # a TTC.  The list shows the Chinese name of the font if it has one, as
 # fc-scan reads it.
 #
+# The page loads Google Analytics with the measurement ID in GA_ID, by default
+# the one of txt2png.  Set GA_ID= (empty) to build without it, e.g. for testing.
+#
 # Serve the result with any static web server, e.g.
 #   python3 -m http.server -d web/site
 set -e
@@ -15,10 +18,32 @@ set -e
 WEB=$(cd "$(dirname "$0")" && pwd)
 SRC=$(dirname "$WEB")
 OUT="$WEB/site"
+GA_ID=${GA_ID-G-15PPB5SH29}
+
+if [ -n "$GA_ID" ] && ! printf '%s' "$GA_ID" | grep -Eqx 'G-[A-Z0-9]+'; then
+  echo "not a Google Analytics measurement ID: $GA_ID" >&2
+  exit 1
+fi
 
 rm -rf "$OUT"
 mkdir -p "$OUT/py"
-cp "$WEB/index.html" "$OUT/"
+if [ -n "$GA_ID" ]; then
+  # Replaces the <!-- analytics --> line with the gtag.js snippet.
+  awk -v id="$GA_ID" -v q="'" '
+    /<!-- analytics -->/ {
+      print "<script async src=\"https://www.googletagmanager.com/gtag/js?id=" id "\"></script>"
+      print "<script>"
+      print "  window.dataLayer = window.dataLayer || [];"
+      print "  function gtag(){dataLayer.push(arguments);}"
+      print "  gtag(" q "js" q ", new Date());"
+      print "  gtag(" q "config" q ", " q id q ");"
+      print "</script>"
+      next
+    }
+    { print }' "$WEB/index.html" > "$OUT/index.html"
+else
+  cp "$WEB/index.html" "$OUT/"
+fi
 cp "$SRC/common.py" "$SRC/basic.py" "$SRC/simple.py" "$SRC/util.py" "$SRC/font_util.py" \
    "$SRC/typeset.py" "$OUT/py/"
 # The browser versions of uharfbuzz and render_lib replace the real ones.

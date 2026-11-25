@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Paragraph Typesetter</title>
+<!-- analytics -->
 <style>
 :root {
   --bg: #f6f5f1; --panel: #ffffff; --text: #1d1d1b; --muted: #6b6a65;
@@ -39,9 +40,10 @@ input, select, textarea, button {
 }
 textarea { min-height: 220px; resize: vertical; line-height: 1.6; }
 .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.check { display: flex; gap: 16px; margin-top: 12px; font-size: 14px; }
+.check { display: flex; flex-wrap: wrap; gap: 8px 16px; margin-top: 12px; font-size: 14px; }
 .check label { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--text); }
 .check input { width: auto; }
+input[type=color] { height: 36px; padding: 2px 4px; cursor: pointer; }
 button { cursor: pointer; width: auto; padding: 6px 14px; }
 button:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
 button:disabled { opacity: .5; cursor: default; }
@@ -104,7 +106,18 @@ pre.error { color: var(--error); }
           <input id="runt" type="number" min="0" max="10000" step="50" value="0">
         </div>
       </div>
+      <div class="row">
+        <div>
+          <label for="fg">文字颜色</label>
+          <input id="fg" type="color" value="#000000">
+        </div>
+        <div>
+          <label for="bg">背景颜色</label>
+          <input id="bg" type="color" value="#ffffff">
+        </div>
+      </div>
       <div class="check">
+        <label><input id="justify" type="checkbox" checked> 两端对齐</label>
         <label><input id="guides" type="checkbox" checked> 显示版心边界</label>
         <label><input id="trace" type="checkbox"> 跟踪输出</label>
       </div>
@@ -120,6 +133,7 @@ pre.error { color: var(--error); }
       <div class="toolbar">
         <button id="dl-svg" disabled>下载 SVG</button>
         <button id="dl-png" disabled>下载 PNG</button>
+        <button id="reset" title="恢复示例文本和所有选项的默认值">恢复默认</button>
         <span id="status">正在加载 Python 运行时……</span>
       </div>
       <div class="paper" id="output"></div>
@@ -205,6 +219,9 @@ function run() {
       par_skip: num('parskip', 0.5),
       hyphen_lang: $('hyphen-lang').value,
       runt_penalty: +$('runt').value || 0,
+      justify: $('justify').checked,
+      fg: $('fg').value,
+      bg: $('bg').value,
       trace: $('trace').checked,
       guides: $('guides').checked,
     });
@@ -229,8 +246,38 @@ function schedule() {
   clearTimeout(timer);
   timer = setTimeout(run, 250);
 }
-for (const id of ['text', 'size', 'text-width', 'indent', 'parskip', 'runt']) $(id).addEventListener('input', schedule);
-for (const id of ['hyphen-lang', 'guides', 'trace']) $(id).addEventListener('change', run);
+const TYPED = ['text', 'size', 'text-width', 'indent', 'parskip', 'runt', 'fg', 'bg'];
+const PICKED = ['hyphen-lang', 'justify', 'guides', 'trace'];
+for (const id of TYPED) $(id).addEventListener('input', () => { saveSettings(); schedule(); });
+for (const id of PICKED) $(id).addEventListener('change', () => { saveSettings(); run(); });
+
+// ---- Settings: the text and the options, kept in this browser only ----
+function saveSettings() {
+  const s = { textHeight: $('text').style.height };
+  for (const id of [...TYPED, ...PICKED]) {
+    s[id] = $(id).type === 'checkbox' ? $(id).checked : $(id).value;
+  }
+  setPref('settings', JSON.stringify(s));
+}
+function loadSettings() {
+  let s;
+  try { s = JSON.parse(getPref('settings')); } catch (e) { return; }
+  if (!s) return;
+  for (const id of [...TYPED, ...PICKED]) {
+    if (s[id] == null) continue;
+    if ($(id).type === 'checkbox') $(id).checked = !!s[id];
+    else $(id).value = s[id];
+  }
+  if (s.textHeight) $('text').style.height = s.textHeight;
+}
+loadSettings();
+$('reset').addEventListener('click', () => {
+  if (!confirm('恢复示例文本和所有选项的默认值？')) return;
+  try { localStorage.removeItem('typeset-settings'); } catch (e) { /* unavailable */ }
+  location.reload();
+});
+// Resizing the text box fires no input event.
+new ResizeObserver(() => { if ($('text').style.height) saveSettings(); }).observe($('text'));
 
 // ---- Downloads ----
 function download(blob, filename) {

@@ -11,7 +11,8 @@ import svg_render
 
 def typeset_text(text, font_path, size=12.0, text_width=typeset.Layout.text_width,
                  indent=typeset.Style.indent, par_skip=typeset.Layout.par_skip,
-                 hyphen_lang='en_US', runt_penalty=0, trace=False, guides=False):
+                 hyphen_lang='en_US', runt_penalty=0, justify=True, fg='#000000',
+                 bg='#ffffff', trace=False, guides=False):
     """Returns (svg, log).  Blank lines separate paragraphs, as in typeset.py."""
     font = font_util.FontInfo('', '', font_path, 0)
     style = typeset.Style(typeset.get_hb_font(font, size), size,
@@ -25,5 +26,6 @@ def typeset_text(text, font_path, size=12.0, text_width=typeset.Layout.text_widt
         paragraphs = typeset.split_paragraphs(text)
         lines = typeset.typeset_paragraphs(paragraphs, line_width, style, hyphen_lang)
     svg = svg_render.render_svg(style.hb_font, size, lines, line_width,
-                                par_skip=layout.par_skip, guides=guides)
+                                par_skip=layout.par_skip, justify=justify,
+                                fg=fg, bg=bg, guides=guides)
     return svg, log.getvalue()
