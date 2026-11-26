@@ -85,12 +85,22 @@ if [ "$json" = '[' ]; then
   exit 1
 fi
 
+COMMIT_FULL='' COMMIT_SHORT='' COMMIT_DATE='' COMMIT_ISO=''
+if git_info=$(git -C "$WEB" log -1 --format='%H %h %cs %cI' 2>/dev/null); then
+  IFS=' ' read -r COMMIT_FULL COMMIT_SHORT COMMIT_DATE COMMIT_ISO <<EOF
+$git_info
+EOF
+fi
+
 rm -rf "$OUT"
 mkdir -p "$OUT/py"
-if [ -n "$GA_ID" ]; then
-  # Replaces the <!-- analytics --> line with the gtag.js snippet.
-  awk -v id="$GA_ID" -v q="'" '
-    /<!-- analytics -->/ {
+# Replaces <!-- analytics --> with the gtag.js snippet (if GA_ID is set) and
+# <!-- updated --> with the commit date and hash (if built from a git repo).
+awk -v id="$GA_ID" -v q="'" \
+    -v commit="$COMMIT_FULL" -v short="$COMMIT_SHORT" \
+    -v date="$COMMIT_DATE" -v iso="$COMMIT_ISO" '
+  /<!-- analytics -->/ {
+    if (id != "") {
       print "<script async src=\"https://www.googletagmanager.com/gtag/js?id=" id "\"></script>"
       print "<script>"
       print "  window.dataLayer = window.dataLayer || [];"
@@ -98,12 +108,17 @@ if [ -n "$GA_ID" ]; then
       print "  gtag(" q "js" q ", new Date());"
       print "  gtag(" q "config" q ", " q id q ");"
       print "</script>"
-      next
     }
-    { print }' "$WEB/index.html" > "$OUT/index.html"
-else
-  cp "$WEB/index.html" "$OUT/"
-fi
+    next
+  }
+  /<!-- updated -->/ {
+    if (commit != "") {
+      url = "https://github.com/chenshuo/typeset/commit/" commit
+      print "    · 更新：<time datetime=\"" iso "\" title=\"" iso "\">" date "</time> (<a href=\"" url "\">" short "</a>)"
+    }
+    next
+  }
+  { print }' "$WEB/index.html" > "$OUT/index.html"
 cp "$SRC/common.py" "$SRC/basic.py" "$SRC/simple.py" "$SRC/util.py" "$SRC/font_util.py" \
    "$SRC/typeset.py" "$OUT/py/"
 # The browser versions of uharfbuzz and render_lib replace the real ones.
