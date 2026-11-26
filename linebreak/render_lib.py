@@ -40,17 +40,33 @@ def _ft_face_ptr(ft_face: freetype.Face) -> int:
     return ctypes.cast(ft_face._FT_Face, ctypes.c_void_p).value
 
 
-def render(font, size, lines, line_width, output, font_index=0):
+def _rendered_width(line, ratio: float) -> float:
+    """Actual horizontal advance of a line after glue stretching/shrinking."""
+    r = max(ratio, -1)
+    width = 0.0
+    for it in line:
+        if isinstance(it, Box):
+            width += it.width
+        elif isinstance(it, Glue):
+            width += it.get_width(r)
+    return width
+
+
+def render(font, size, lines, line_width, output, font_index=0, align='left'):
     """Renders the lines of one paragraph, see render_paragraphs()."""
-    render_paragraphs(font, size, [lines], line_width, output, font_index)
+    render_paragraphs(font, size, [lines], line_width, output, font_index,
+                      align=align)
 
 
 def render_paragraphs(font, size, paragraphs, line_width, output, font_index=0,
-                      par_skip=0.0):
+                      par_skip=0.0, align='left'):
     """Renders paragraphs, each a list of (ratio, items) lines, into one page.
 
     par_skip is the extra space between paragraphs, in multiples of size.
+    align is 'left' or 'center', positioning each line within line_width.
     """
+    if align not in ('left', 'center'):
+        raise ValueError(f"Unsupported align: {align!r} (expected 'left' or 'center')")
     ft_face = freetype.Face(font, font_index)
     ft_face.set_char_size(int(size * FREETYPE_SCALE), 0, 72, 72)
     left_margin = size
@@ -86,12 +102,13 @@ def render_paragraphs(font, size, paragraphs, line_width, output, font_index=0,
         if i > 0:
             pos_y += size * par_skip
         for ratio, line in lines:
+            if line and isinstance(line[-1], Penalty) and line[-1].text:  # Hyphen
+                last_item = line[-1]
+                glyph = (ft_face.get_char_index(last_item.text[0]), 0, 0)
+                line[-1] = Box(last_item.width, last_item.text, [glyph, ])
             pos_x = left_margin
-            last_item = line[-1]
-            if isinstance(last_item, Penalty):
-                if last_item.text:  # Hyphen
-                    glyph = (ft_face.get_char_index(last_item.text[0]), 0, 0)
-                    line[-1] = Box(last_item.width, last_item.text, [glyph, ])
+            if align == 'center':
+                pos_x += (line_width - _rendered_width(line, ratio)) / 2
             for it in line:
                 if isinstance(it, Box):
                     if it.glyphs:

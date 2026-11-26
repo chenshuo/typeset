@@ -1,11 +1,13 @@
 import argparse
 import math
+import sys
 import unicodedata
 
 import pytest
 
 from common import Box, Glue, Penalty, HYPHEN_PENALTY, INF_PENALTY
 import font_util
+import render_lib
 import util
 import render_simple
 from render_simple import (
@@ -526,6 +528,46 @@ def test_parse_text_widths():
       parse(bad)
 
 
+def test_rendered_width():
+  w = render_lib._rendered_width
+  g = Glue(2, 4, 1)
+  line = [Box(10, 'a'), g, Box(10, 'b')]
+  assert w(line, 0.0) == 22.0
+  assert w(line, 0.5) == 24.0
+  assert w(line, -0.5) == 21.5
+  # Overfull ratios are clamped to -1, matching render_paragraphs().
+  assert w(line, -2.0) == 21.0
+  assert w(line, -math.inf) == 21.0
+  # Unused penalties (even with hyphen width) and finishing Glue.INF add 0.
+  line_with_penalties = [Box(10, 'a'), Penalty(50, 3.0, '-', is_hyphen=True),
+                         Box(10, 'b'), Penalty.NO_BREAK, Glue.INF, Penalty.EJECT]
+  assert w(line_with_penalties, 0.0) == 20.0
+
+
+def test_render_invalid_align(tmp_path):
+  with pytest.raises(ValueError, match="Unsupported align"):
+    render_lib.render('unused.otf', SIZE, [], 100, str(tmp_path / 'out.png'),
+                      align='right')
+
+
+def test_cli_text_align(monkeypatch):
+  calls = []
+  fake_font = font_util.FontInfo('Fake', 'Regular', '/fake.otf', 0)
+  monkeypatch.setattr(render_simple, 'resolve_font', lambda ap, args: fake_font)
+  monkeypatch.setattr(render_simple, 'render_paragraph',
+                      lambda *args: calls.append(args[-1]))
+
+  monkeypatch.setattr(sys, 'argv', ['render_simple.py', '中文'])
+  render_simple.main()
+  monkeypatch.setattr(sys, 'argv', ['render_simple.py', '中文', '--text_align', 'center'])
+  render_simple.main()
+  assert calls == ['left', 'center']
+
+  monkeypatch.setattr(sys, 'argv', ['render_simple.py', '中文', '--text_align', 'right'])
+  with pytest.raises(SystemExit):
+    render_simple.main()
+
+
 # ------------------------------------------------- segmentation (injected)
 
 def test_segmenter_gets_raw_text():
@@ -646,3 +688,50 @@ def test_real_font_items(hb_font, text):
       assert b.width == SIZE / 2, b
     elif len(b.text) == 1 and not is_latin_word(b.text):
       assert b.width == SIZE, b
+
+
+def test_real_font_render_align_center(tmp_path, monkeypatch):
+  try:
+    font = font_util.find_font(FONT_FAMILY)
+  except OSError:
+    pytest.skip('no fontconfig')
+  if font is None:
+    pytest.skip(f'no font {FONT_FAMILY}')
+
+  hb_font = get_hb_font(font, SIZE)
+  box = util.get_box('中', hb_font)
+  hyphen = Penalty(HYPHEN_PENALTY, util.get_box('-', hb_font).width, '-', is_hyphen=True)
+  line_width = 10 * SIZE
+
+  orig_lib = render_lib._libcairo
+
+  def capture_xs(align):
+    xs = []
+    def spy(cr, glyphs, count):
+      xs.append([glyphs[k].x for k in range(count)])
+      return orig_lib.cairo_show_glyphs(cr, glyphs, count)
+    class LibProxy:
+      def __getattr__(self, name):
+        return spy if name == 'cairo_show_glyphs' else getattr(orig_lib, name)
+    monkeypatch.setattr(render_lib, '_libcairo', LibProxy())
+    lines = [
+        (0.0, [box, box]),                      # 2em wide -> centered offset 4em
+        (0.0, [box, hyphen]),                   # 1em + hyphen -> centered with hyphen
+    ]
+    render_lib.render(font.path, SIZE, lines, line_width,
+                      str(tmp_path / f'{align}.png'),
+                      font_index=font.index, align=align)
+    return xs
+
+  left_xs = capture_xs('left')
+  center_xs = capture_xs('center')
+
+  # First line: 2 boxes of width SIZE centered in 10*SIZE -> shifted by 4*SIZE.
+  assert left_xs[0][0] == pytest.approx(SIZE)
+  assert center_xs[0][0] == pytest.approx(SIZE + (line_width - 2 * SIZE) / 2)
+  assert center_xs[1][0] - center_xs[0][0] == pytest.approx(SIZE)
+
+  # Second line: 1 box + trailing hyphen centered together.
+  expected_w = SIZE + hyphen.width
+  assert center_xs[2][0] == pytest.approx(SIZE + (line_width - expected_w) / 2)
+  assert center_xs[3][0] == pytest.approx(center_xs[2][0] + SIZE)

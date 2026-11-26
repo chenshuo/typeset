@@ -231,7 +231,7 @@ def break_lines(text, line_widths, params: Params, hyphen_lang='en_US', loosenes
 
 
 def render_paragraph(text, size, text_widths_em, runt_penalty, output, font, hyphen_lang,
-                     looseness=0, indent=Params.indent):
+                     looseness=0, indent=Params.indent, text_align='left'):
     hb_font = get_hb_font(font, size)
     params = Params(hb_font, size, runt_penalty=runt_penalty, indent=indent)
 
@@ -241,8 +241,9 @@ def render_paragraph(text, size, text_widths_em, runt_penalty, output, font, hyp
     assert breaks
 
     lines = show_results(items, line_widths, breaks)
-    # Lines are set flush left, in an image as wide as the widest line.
-    render(font.path, size, lines, max(line_widths), output, font_index=font.index)
+    # Image is as wide as the widest line; lines are aligned within it.
+    render(font.path, size, lines, max(line_widths), output, font_index=font.index,
+           align=text_align)
 
 
 def parse_text_widths(arg: str) -> list[float]:
@@ -285,6 +286,7 @@ examples:
   %(prog)s input.txt --output out.png
   %(prog)s '学而时习之，不亦说乎？' --text_widths 10
   %(prog)s --text_widths 16,16,16,22        # three lines of 16 em, then 22 em
+  %(prog)s --text_align center              # center each line in the widest width
   %(prog)s --indent 2                       # indent the first line by 2 em
   %(prog)s --looseness -1                   # one line fewer, if possible
   %(prog)s --font 'Noto Serif CJK TC' --size 16
@@ -325,6 +327,9 @@ def main():
                         "or the widths of the first lines separated by commas, the last "
                         "one being used for all further lines, e.g. 16,16,22 to make "
                         "room for a figure (default: 22)")
+    g.add_argument("--text_align", choices=("left", "center"), default="left",
+                   help="horizontal alignment of lines within the widest line width "
+                        "(default: %(default)s)")
     g.add_argument("--indent", metavar="EM", type=float, default=Params.indent,
                    help="indent of the first line in em, e.g. 2 for Chinese text "
                         "(default: %(default)s)")
@@ -363,7 +368,8 @@ def main():
 
     font = resolve_font(ap, args)
     render_paragraph(text, args.size, args.text_widths, args.runt_penalty, args.output,
-                     font, args.hyphen_lang, args.looseness, args.indent)
+                     font, args.hyphen_lang, args.looseness, args.indent,
+                     args.text_align)
 
 
 if __name__ == '__main__':
