@@ -28,6 +28,7 @@ body {
 main { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; }
 h1 { font-size: 22px; margin: 0 0 4px; }
 .sub { color: var(--muted); margin: 0 0 20px; }
+.sub a { color: var(--accent); }
 .layout { display: grid; grid-template-columns: minmax(0, 380px) minmax(0, 1fr); gap: 20px; align-items: start; }
 @media (max-width: 820px) { .layout { grid-template-columns: minmax(0, 1fr); } }
 .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
@@ -65,7 +66,7 @@ pre.error { color: var(--error); }
 <body>
 <main>
   <h1>Knuth-Plass 中文排版</h1>
-  <p class="sub">用 Knuth-Plass 断行算法排版中文或中英混排段落。所有计算在浏览器里完成，文本不会上传。</p>
+  <p class="sub">用 Knuth-Plass 断行算法排版中文或中英混排段落。所有计算在浏览器里完成，文本不会上传。<a href="https://github.com/chenshuo/typeset/blob/master/knuth-plass-line-breaking.pdf" target="_blank" rel="noopener">算法介绍（PDF）</a></p>
 
   <div class="layout">
     <section class="panel">
