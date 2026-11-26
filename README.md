@@ -2,9 +2,10 @@
 
 ## PDF 下载
 
-* [用 LaTeX 排版编程技术书籍的一些个人经验](typeset.pdf)
-* [汉字激光照排小史](wangxuan-history.pdf)
+* 2013/04 [用 LaTeX 排版编程技术书籍的一些个人经验](typeset.pdf)
+* 2024/08 [汉字激光照排小史](wangxuan-history.pdf)
     * 复刻 1979 年王选教授研制的华光I型汉字激光照排系统排出的[第一张 8 开报纸样张](wangxuan1979.pdf)
+* 2026/11 [Knuth-Plass 断行算法详解与 Python 实验](knuth-plass-line-breaking.pdf)
 * [TikZ 绘制中学几何题](tikz-notes.ipynb)
 
 ## 断行算法
